@@ -57,8 +57,8 @@ void Lexer::initSymbolMap() {
     symbolMap["＝"] = TokenType::ASSIGN;           // 赋值（全角）
     symbolMap["＋"] = TokenType::PLUS;             // 加号（全角）
     symbolMap["－"] = TokenType::MINUS;            // 减号（全角）
-    symbolMap["＊"] = TokenType::MULTIPLY;         // 乘号（全角）
-    symbolMap["／"] = TokenType::DIVIDE;           // 除号（全角）
+    symbolMap["＊"] = TokenType::STAR;             // 乘号（全角）
+    symbolMap["／"] = TokenType::SLASH;            // 除号（全角）
     symbolMap["．"] = TokenType::DOT;              // 点号（全角）
 
     // 全角复合操作符
@@ -88,10 +88,10 @@ void Lexer::initSymbolMap() {
     symbolMap["字符"] = TokenType::TYPE_CHAR;
 
     // === 布尔值映射 ===
-    symbolMap["true"] = TokenType::BOOL_TRUE;
-    symbolMap["false"] = TokenType::BOOL_FALSE;
-    symbolMap["真"] = TokenType::BOOL_TRUE;          // 中文布尔值
-    symbolMap["假"] = TokenType::BOOL_FALSE;         // 中文布尔值
+    symbolMap["true"] = TokenType::TRUE;
+    symbolMap["false"] = TokenType::FALSE;
+    symbolMap["真"] = TokenType::TRUE;          // 中文布尔值
+    symbolMap["假"] = TokenType::FALSE;         // 中文布尔值
 }
 
 char Lexer::peek() {
@@ -408,7 +408,7 @@ void Lexer::scanSymbol() {
         case '_': tokens.emplace_back(TokenType::SELF_REF, "_", startLine, startColumn); break;
         case '*': tokens.emplace_back(TokenType::CONSTANT, "*", startLine, startColumn); break;
         case '?': tokens.emplace_back(TokenType::QUESTION, "?", startLine, startColumn); break;
-        case '/': tokens.emplace_back(TokenType::DIVIDE, "/", startLine, startColumn); break;
+        case '/': tokens.emplace_back(TokenType::SLASH, "/", startLine, startColumn); break;
         case '(': tokens.emplace_back(TokenType::LEFT_PAREN, "(", startLine, startColumn); break;
         case ')': tokens.emplace_back(TokenType::RIGHT_PAREN, ")", startLine, startColumn); break;
         case '{': tokens.emplace_back(TokenType::LEFT_BRACE, "{", startLine, startColumn); break;

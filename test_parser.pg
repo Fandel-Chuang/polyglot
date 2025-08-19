@@ -1,0 +1,33 @@
+// 递归下降Parser测试用例
+// polyglot英文版基础语法测试
+
+>> "iostream"
+>> "string"
+
+@ Player {
+    name: string,
+    health: f64,
+    level: i32
+}
+
+& Player {
+    Player(name: string, health: f64) {
+        _.name = name
+        _.health = health
+        _.level = 1
+    }
+
+    get_info() -> string {
+        <- _.name + " (Health: " + _.health + ")"
+    }
+}
+
+main() {
+    ? player = Player("Alice", 100.0)
+    ? info = player.get_info()
+    ? damage = 25.0
+
+    player.health = player.health - damage
+
+    <- 0
+}

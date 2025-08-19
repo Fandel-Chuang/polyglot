@@ -2,10 +2,17 @@
 #include "error.h"
 #include <iostream>
 #include <algorithm>
+#include <unordered_set>
 
-Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), current(0) {}
+Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), current(0) {
+    std::cout << "🚀 Parser初始化完成，准备解析 " << tokens.size() << " 个Token" << std::endl;
+}
 
 Token& Parser::peek() {
+    if (current >= tokens.size()) {
+        static Token eofToken = {TokenType::EOF_TOKEN, "", 0, 0};
+        return eofToken;
+    }
     return tokens[current];
 }
 
@@ -15,7 +22,7 @@ Token& Parser::advance() {
 }
 
 bool Parser::isAtEnd() {
-    return peek().type == TokenType::EOF_TOKEN;
+    return current >= tokens.size() || peek().type == TokenType::EOF_TOKEN;
 }
 
 bool Parser::match(TokenType type) {
@@ -60,6 +67,15 @@ std::unique_ptr<Program> Parser::parse() {
 
 // 解析顶级语句（模块导入、函数定义、结构体定义等）
 std::unique_ptr<ASTNode> Parser::parseTopLevelStatement() {
+    // 跳过换行符和空白符
+    while (peek().type == TokenType::NEWLINE && !isAtEnd()) {
+        advance();
+    }
+
+    if (isAtEnd()) {
+        return nullptr;
+    }
+
     Token& current = peek();
 
     switch (current.type) {
@@ -88,9 +104,14 @@ std::unique_ptr<ASTNode> Parser::parseImport() {
 
     std::string moduleName = advance().value;
 
-    // 这里暂时返回nullptr，因为我们还没有Import AST节点
-    // 在实际实现中，这里应该返回ImportDecl节点
-    return nullptr;
+    // 移除引号
+    if (moduleName.length() >= 2 && moduleName[0] == '"' && moduleName.back() == '"') {
+        moduleName = moduleName.substr(1, moduleName.length() - 2);
+    }
+
+    std::cout << "   📦 解析导入模块: " << moduleName << std::endl;
+
+    return std::make_unique<ImportDecl>(moduleName);
 }
 
 // 解析结构体定义: @ StructName { field1: type, field2: type }
@@ -172,6 +193,7 @@ std::unique_ptr<FunctionDecl> Parser::parseFunctionDef() {
     }
 
     funcDecl->name = advance().value;
+    std::cout << "   🔧 解析函数定义: " << funcDecl->name << std::endl;
 
     consume(TokenType::LEFT_PAREN, "期望 '('");
 
@@ -254,7 +276,18 @@ std::unique_ptr<Block> Parser::parseBlock() {
 
 // 解析语句
 std::unique_ptr<Statement> Parser::parseStatement() {
+    // 跳过换行符
+    while (peek().type == TokenType::NEWLINE && !isAtEnd()) {
+        advance();
+    }
+
+    if (isAtEnd()) {
+        return nullptr;
+    }
+
     Token& current = peek();
+    std::cout << "   🔄 parseStatement: Token类型=" << static_cast<int>(current.type)
+              << ", 值='" << current.value << "'" << std::endl;
 
     switch (current.type) {
         case TokenType::QUESTION:      // ? 变量声明
@@ -263,16 +296,20 @@ std::unique_ptr<Statement> Parser::parseStatement() {
             return parseReturnStmt();
         case TokenType::LEFT_BRACE:    // { 代码块
             return parseBlock();
+        case TokenType::RIGHT_BRACE:   // } 代码块结束
+            return nullptr;  // 不消费token，让调用者处理
         default:
-            // 表达式语句
-            return parseExpressionStmt();
+            // 对于不能处理的token，跳过以避免死循环
+            advance();
+            std::cout << "   ⚠️  跳过未识别的token: " << current.value << std::endl;
+            return nullptr;
     }
 }
 
 // 解析变量声明语句
 std::unique_ptr<Statement> Parser::parseVariableDeclStmt() {
     auto varDecl = parseVariableDecl();
-    return std::unique_ptr<Statement>(static_cast<Statement*>(varDecl.release()));
+    return std::move(varDecl);  // VariableDecl现在继承自Statement，可以直接move
 }
 
 // 解析返回语句: <- expression

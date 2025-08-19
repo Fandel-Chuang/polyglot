@@ -144,8 +144,16 @@ void compile(const std::string& sourceCode, const std::string& filename) {
         // 1. 词法分析 (Lexical Analysis)
         std::cout << "📝 步骤 1: 词法分析..." << std::endl;
         Lexer lexer(sourceCode);
-        auto tokens = lexer.tokenize();
-        std::cout << "   ✅ 生成了 " << tokens.size() << " 个token" << std::endl;
+        std::vector<Token> tokens = lexer.tokenize();
+        std::cout << "   🔤 词法分析完成" << std::endl;
+
+        // 调试：仅打印前几个Token
+        std::cout << "   🔍 前5个Token:" << std::endl;
+        size_t maxTokens = tokens.size() < 5 ? tokens.size() : 5;
+        for (size_t i = 0; i < maxTokens; ++i) {
+            std::cout << "     [" << i << "] 类型=" << static_cast<int>(tokens[i].type)
+                      << ", 值='" << tokens[i].value << "'" << std::endl;
+        }
 
         // 2. 语法分析 (Syntax Analysis)
         std::cout << "🔍 步骤 2: 语法分析..." << std::endl;
@@ -160,7 +168,7 @@ void compile(const std::string& sourceCode, const std::string& filename) {
         std::cout << "   ✅ 语义检查通过" << std::endl;
 
         // 4. 代码生成 (Code Generation)
-        std::cout << "⚙️  步骤 4: 代码生成..." << std::endl;
+        std::cout << "⚙️ 步骤 4: 代码生成..." << std::endl;
         CodeGenerator codeGenerator;
         std::string output = codeGenerator.generate(ast);
         std::cout << "   ✅ 代码生成完成" << std::endl;

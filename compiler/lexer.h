@@ -70,8 +70,8 @@ enum TokenType {
     FLOAT_LITERAL,    // 123.45
     STRING_LITERAL,   // "hello"
     CHAR_LITERAL,     // 'a'
-    BOOL_TRUE,        // 1
-    BOOL_FALSE,       // 0
+    TRUE,             // true
+    FALSE,            // false
 
     // 标识符
     IDENTIFIER,       // 变量名、函数名等
@@ -79,8 +79,8 @@ enum TokenType {
     // 运算符
     PLUS,             // +
     MINUS,            // -
-    MULTIPLY,         // *
-    DIVIDE,           // /
+    STAR,             // *
+    SLASH,            // /
     MODULO,           // %
 
     // 比较运算符

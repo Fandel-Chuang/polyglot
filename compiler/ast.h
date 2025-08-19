@@ -14,9 +14,21 @@ struct ASTNode {
     int column = 0;
 };
 
+// 导入声明
+struct ImportDecl : public ASTNode {
+    std::string moduleName;
+
+    ImportDecl(const std::string& module) : moduleName(module) {}
+};
+
 // 程序根节点
 struct Program : public ASTNode {
     std::vector<std::unique_ptr<ASTNode>> statements;
+};
+
+// 语句基类 - 需要提前定义
+struct Statement : public ASTNode {
+    // 语句基类
 };
 
 // 类型定义
@@ -26,8 +38,8 @@ struct TypeNode : public ASTNode {
     TypeNode(const std::string& typeName) : name(typeName) {}
 };
 
-// 变量声明
-struct VariableDecl : public ASTNode {
+// 变量声明 - 继承自Statement，因为它也可以作为语句
+struct VariableDecl : public Statement {
     std::string name;
     std::unique_ptr<TypeNode> type;
     std::unique_ptr<ASTNode> initializer;
@@ -79,11 +91,6 @@ struct BinaryOp : public Expression {
     std::unique_ptr<Expression> left;
     std::string operator_;
     std::unique_ptr<Expression> right;
-};
-
-// 语句基类
-struct Statement : public ASTNode {
-    // 语句基类
 };
 
 // 块语句

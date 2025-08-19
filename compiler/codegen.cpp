@@ -1,5 +1,7 @@
 #include "codegen.h"
+#include <sstream>
 #include <iostream>
+#include <algorithm>
 
 std::string CodeGenerator::generate(const std::unique_ptr<Program>& program) {
     std::cout << "   ⚙️ 开始生成C++代码..." << std::endl;
