@@ -6,38 +6,64 @@
 #include <iostream>
 #include "token_types.h"
 
-// 简单的JSON解析器，专门用于符号映射配置
 class SymbolConfigLoader {
 private:
     std::string configFile;
     std::unordered_map<std::string, std::string> unicodeMappings;
-    std::unordered_map<std::string, std::vector<std::string>> symbolGroups;
+    std::unordered_map<std::string, TokenType> symbolToTokenType;
+    std::unordered_map<std::string, std::string> chineseKeywords;
+    std::unordered_map<std::string, std::vector<std::string>> builtinFunctions;
+
+    // JSON解析辅助方法
+    void parseSymbolMappings(const std::string& content);
+    void parseSymbolSection(const std::string& content, const std::string& sectionName);
+    void parseKeywords(const std::string& content);
+    void parseBuiltinFunctions(const std::string& content);
+
+    size_t findMatchingBrace(const std::string& content, size_t startPos);
+    std::vector<std::string> parseArray(const std::string& arrayContent);
+    TokenType getTokenTypeFromKey(const std::string& key);
+
+    // 原有辅助方法
+    std::string trim(const std::string& str);
+    std::string extractStringValue(const std::string& line);
+    std::vector<std::string> extractArrayValues(const std::string& line);
 
 public:
     SymbolConfigLoader(const std::string& configPath = "symbol_mapping.json");
 
-    // 加载配置文件
     bool loadConfig();
-
-    // 获取Unicode字符对应的Token类型
     std::string getTokenTypeForUnicode(const std::string& unicodeChar);
-
-    // 获取符号组的所有变体
-    std::vector<std::string> getSymbolVariants(const std::string& symbolName);
-
-    // 检查是否是已知的Unicode符号
     bool isKnownUnicodeSymbol(const std::string& unicodeChar);
-
-    // 打印配置信息（用于调试）
     void printConfig();
 
-private:
-    // 简单的JSON解析辅助函数
-    std::string trim(const std::string& str);
-    std::string extractStringValue(const std::string& line);
-    std::vector<std::string> extractArrayValues(const std::string& line);
+    // 新增访问方法
+    TokenType getSymbolTokenType(const std::string& symbol) {
+        auto it = symbolToTokenType.find(symbol);
+        return (it != symbolToTokenType.end()) ? it->second : TokenType::UNKNOWN;
+    }
+
+    bool isChineseKeyword(const std::string& word) {
+        return chineseKeywords.find(word) != chineseKeywords.end();
+    }
+
+    std::string getChineseKeywordType(const std::string& word) {
+        auto it = chineseKeywords.find(word);
+        return (it != chineseKeywords.end()) ? it->second : "";
+    }
+
+    bool isBuiltinFunction(const std::string& name) {
+        for (const auto& func : builtinFunctions) {
+            for (const auto& variant : func.second) {
+                if (variant == name) return true;
+            }
+        }
+        return false;
+    }
+
+    std::vector<std::string> getSymbolVariants(const std::string& symbolName);
 };
 
-// Token类型名称到枚举值的映射
+// 全局转换函数
 TokenType stringToTokenType(const std::string& typeName);
 std::string tokenTypeToString(TokenType type);

@@ -248,6 +248,14 @@ compile_project() {
         if command -v ls >/dev/null 2>&1; then
             ls -lh "$TARGET"
         fi
+
+        # 创建中文软链接
+        print_info "🔗 创建中文软链接: 文达"
+        if ln -sf "$TARGET" "文达" 2>/dev/null; then
+            print_success "✅ 中文软链接创建成功: 文达"
+        else
+            print_warning "⚠️ 中文软链接创建失败"
+        fi
     else
         print_error "❌ 编译失败"
         exit 1

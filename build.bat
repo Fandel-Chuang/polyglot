@@ -59,6 +59,15 @@ if %errorlevel% == 0 (
     if exist "%TARGET%" (
         echo [INFO] 文件大小:
         dir "%TARGET%" | findstr "%TARGET%"
+
+        REM 创建中文快捷方式
+        echo [INFO] 📄 创建中文快捷方式: 文达
+        copy "%TARGET%" "文达" >nul
+        if exist "文达" (
+            echo [SUCCESS] ✅ 中文快捷方式创建成功: 文达
+        ) else (
+            echo [WARNING] ⚠️ 中文快捷方式创建失败
+        )
     )
 
     REM 如果参数是test，运行测试

@@ -1,0 +1,75 @@
+{
+  "description": "polyglot/文达 符号映射配置文件",
+  "version": "1.0.0",
+  "symbol_mappings": {
+    "core_symbols": {
+      "import": [">>", "》》"],
+      "variable_declaration": ["?", "？"],
+      "conditional_assign": [":=", "：="],
+      "return_arrow": ["<-", "《-"],
+      "struct_def": ["@", "@"],
+      "impl_def": ["&", "&"],
+      "arrow": ["->", "-》"],
+      "interface": ["%", "%"],
+      "enum": ["#", "#"],
+      "loop": ["^", "……"],
+      "constant": ["*", "*"],
+      "break_stmt": ["<<", "《《"],
+      "self_ref": ["_", "——"],
+      "variable_prefix": ["$", "￥"]
+    },
+    "operators": {
+      "assign": ["=", "="],
+      "plus": ["+", "+"],
+      "minus": ["-", "-"],
+      "star": ["*", "*"],
+      "slash": ["/", "/"],
+      "equal": ["==", "=="],
+      "not_equal": ["!=", "!="],
+      "less_than": ["<", "《"],
+      "greater_than": [">", "》"],
+      "less_equal": ["<=", "《="],
+      "greater_equal": [">=", "》="],
+      "logical_and": ["&&", "&&"],
+      "logical_or": ["||", "||"],
+      "logical_not": ["!", "！"],
+      "plus_assign": ["+=", "+="],
+      "minus_assign": ["-=", "-="]
+    },
+    "punctuation": {
+      "left_paren": ["(", "（"],
+      "right_paren": [")", "）"],
+      "left_brace": ["{", "{"],
+      "right_brace": ["}", "}"],
+      "left_bracket": ["[", "【"],
+      "right_bracket": ["]", "】"],
+      "comma": [",", "，"],
+      "semicolon": [";", "；"],
+      "colon": [":", "："],
+      "dot": [".", "。"],
+      "question": ["?", "？"]
+    },
+    "string_delimiters": {
+      "double_quote": ["\"", "“", "”"]
+    },
+    "keywords": {
+      "整数": "TYPE_I32",
+      "长整数": "TYPE_I64",
+      "浮点数": "TYPE_F32",
+      "双精度浮点数": "TYPE_F64",
+      "布尔": "TYPE_BOOL",
+      "字符串": "TYPE_STRING",
+      "字符": "TYPE_CHAR",
+      "真": "TRUE",
+      "假": "FALSE",
+      "打印": "BUILTIN_PRINT",
+      "主函数": "MAIN_FUNCTION"
+    },
+    "builtin_functions": {
+      "print": ["print", "打印"],
+      "input": ["input", "输入"],
+      "length": ["len", "长度"],
+      "substr": ["substr", "子字符串"]
+    }
+  }
+}
