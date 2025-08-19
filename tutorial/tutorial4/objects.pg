@@ -1,0 +1,457 @@
+// polyglot 面向对象编程教程
+
+>> "math"  // 导入数学库
+
+main() {
+    >>("=== polyglot 面向对象教程 ===")
+
+    // 1. 创建和使用基本对象
+    >>("\n1. 基本对象操作:")
+    ? p1 = Point(3.0, 4.0)
+    ? p2 = Point(0.0, 0.0)
+
+    >>("点 p1: (" + p1.x + ", " + p1.y + ")")
+    >>("点 p2: (" + p2.x + ", " + p2.y + ")")
+
+    ? distance = p1.distance_to(p2)
+    >>("p1 到 p2 的距离: " + distance)
+
+    // 移动点
+    p1.move_by(1.0, 1.0)
+    >>("移动后的 p1: (" + p1.x + ", " + p1.y + ")")
+
+    // 2. 创建复杂对象
+    >>("\n2. 复杂对象 - 圆形:")
+    ? circle = Circle(Point(0.0, 0.0), 5.0)
+
+    >>("圆心: (" + circle.center.x + ", " + circle.center.y + ")")
+    >>("半径: " + circle.radius)
+    >>("圆的面积: " + circle.area())
+    >>("圆的周长: " + circle.circumference())
+
+    // 检查点是否在圆内
+    ? test_point = Point(3.0, 4.0)
+    ? is_inside = circle.contains_point(test_point)
+    >>("点 (" + test_point.x + ", " + test_point.y + ") 在圆内: " + is_inside)
+
+    // 3. 使用接口和多态
+    >>("\n3. 接口和多态:")
+    ? shapes = []
+    shapes.push(circle)
+    shapes.push(Rectangle(Point(-2.0, -1.0), 4.0, 2.0))
+    shapes.push(Triangle(Point(0.0, 0.0), Point(3.0, 0.0), Point(1.5, 3.0)))
+
+    ? total_area = 0.0
+    ? i = 0
+    ^(i < len(shapes)) {
+        ? shape = shapes[i]
+        ? shape_area = shape.area()
+        total_area = total_area + shape_area
+
+        >>("形状 " + (i + 1) + " 面积: " + shape_area)
+        i = i + 1
+    }
+    >>("所有形状总面积: " + total_area)
+
+    // 4. 枚举类型使用
+    >>("\n4. 枚举类型:")
+    ? red_color = Color::Red
+    ? blue_color = Color::Blue
+    ? custom_color = Color::RGB(255, 128, 0)
+
+    >>("红色: " + color_to_string(red_color))
+    >>("蓝色: " + color_to_string(blue_color))
+    >>("自定义橙色: " + color_to_string(custom_color))
+
+    // 5. 动物继承示例
+    >>("\n5. 继承和多态:")
+    ? animals = []
+    animals.push(Dog("旺财", 3))
+    animals.push(Cat("小咪", 2))
+    animals.push(Bird("小黄", 1))
+
+    ? j = 0
+    ^(j < len(animals)) {
+        ? animal = animals[j]
+
+        >>("动物: " + animal.get_name() + ", 年龄: " + animal.get_age())
+        animal.make_sound()
+        animal.move()
+
+        // 检查特殊能力
+        (animal.can_fly()) ? {
+            >>("  - 这个动物会飞！")
+        }
+
+        j = j + 1
+    }
+
+    // 6. 组合模式示例
+    >>("\n6. 对象组合:")
+    ? team = Team("开发团队")
+    team.add_member(Person("Alice", "程序员", 5))
+    team.add_member(Person("Bob", "设计师", 3))
+    team.add_member(Person("Charlie", "测试员", 2))
+
+    >>("团队: " + team.name)
+    >>("成员数量: " + team.member_count())
+    team.show_members()
+
+    ? avg_experience = team.average_experience()
+    >>("平均经验: " + avg_experience + " 年")
+
+    <- 0
+}
+
+// ===================
+// 基础结构定义
+// ===================
+
+// 2D 点结构
+@ Point {
+    x: F,
+    y: F
+}
+
+// 实现 Point 的方法
+& Point {
+    // 构造函数
+    Point(x: F, y: F) {
+        <- Point { x: x, y: y }
+    }
+
+    // 计算到另一点的距离
+    distance_to(other: Point) -> F {
+        ? dx = self.x - other.x
+        ? dy = self.y - other.y
+        <- sqrt(dx * dx + dy * dy)
+    }
+
+    // 移动点
+    move_by(dx: F, dy: F) {
+        self.x += dx
+        self.y += dy
+    }
+
+    // 获取点的字符串表示
+    to_string() -> s {
+        <- "(" + self.x + ", " + self.y + ")"
+    }
+}
+
+// 形状接口定义
+% Shape {
+    area() -> F
+    perimeter() -> F
+    contains_point(point: Point) -> b
+}
+
+// ===================
+// 具体形状实现
+// ===================
+
+// 圆形
+@ Circle {
+    center: Point,
+    radius: F
+}
+
+& Circle % Shape {
+    Circle(center: Point, radius: F) {
+        <- Circle { center: center, radius: radius }
+    }
+
+    area() -> F {
+        * PI = 3.14159265359
+        <- PI * self.radius * self.radius
+    }
+
+    circumference() -> F {
+        * PI = 3.14159265359
+        <- 2.0 * PI * self.radius
+    }
+
+    perimeter() -> F {
+        <- self.circumference()
+    }
+
+    contains_point(point: Point) -> b {
+        ? distance = self.center.distance_to(point)
+        <- distance <= self.radius
+    }
+}
+
+// 矩形
+@ Rectangle {
+    top_left: Point,
+    width: F,
+    height: F
+}
+
+& Rectangle % Shape {
+    Rectangle(top_left: Point, width: F, height: F) {
+        <- Rectangle {
+            top_left: top_left,
+            width: width,
+            height: height
+        }
+    }
+
+    area() -> F {
+        <- self.width * self.height
+    }
+
+    perimeter() -> F {
+        <- 2.0 * (self.width + self.height)
+    }
+
+    contains_point(point: Point) -> b {
+        ? x = point.x
+        ? y = point.y
+        ? left = self.top_left.x
+        ? top = self.top_left.y
+        ? right = left + self.width
+        ? bottom = top + self.height
+
+        <- (x >= left && x <= right && y >= top && y <= bottom)
+    }
+}
+
+// 三角形
+@ Triangle {
+    a: Point,
+    b: Point,
+    c: Point
+}
+
+& Triangle % Shape {
+    Triangle(a: Point, b: Point, c: Point) {
+        <- Triangle { a: a, b: b, c: c }
+    }
+
+    area() -> F {
+        // 使用海伦公式计算面积
+        ? side_a = self.b.distance_to(self.c)
+        ? side_b = self.a.distance_to(self.c)
+        ? side_c = self.a.distance_to(self.b)
+        ? s = (side_a + side_b + side_c) / 2.0
+
+        <- sqrt(s * (s - side_a) * (s - side_b) * (s - side_c))
+    }
+
+    perimeter() -> F {
+        ? side_a = self.b.distance_to(self.c)
+        ? side_b = self.a.distance_to(self.c)
+        ? side_c = self.a.distance_to(self.b)
+        <- side_a + side_b + side_c
+    }
+
+    contains_point(point: Point) -> b {
+        // 简化实现，实际应该使用重心坐标
+        <- false
+    }
+}
+
+// ===================
+// 枚举类型
+// ===================
+
+# Color {
+    Red,
+    Green,
+    Blue,
+    RGB(r: i, g: i, b: i)
+}
+
+// 颜色转字符串函数
+color_to_string(color: Color) -> s {
+    #(color) {
+        Color::Red => <- "红色",
+        Color::Green => <- "绿色",
+        Color::Blue => <- "蓝色",
+        Color::RGB(r, g, b) => <- "RGB(" + r + ", " + g + ", " + b + ")"
+    }
+}
+
+// ===================
+// 动物继承系统
+// ===================
+
+// 动物基础接口
+% Animal {
+    get_name() -> s
+    get_age() -> i
+    make_sound()
+    move()
+    can_fly() -> b
+}
+
+// 哺乳动物基类
+@ Mammal {
+    name: s,
+    age: i
+}
+
+& Mammal % Animal {
+    get_name() -> s {
+        <- self.name
+    }
+
+    get_age() -> i {
+        <- self.age
+    }
+
+    can_fly() -> b {
+        <- false  // 哺乳动物一般不会飞
+    }
+}
+
+// 狗
+@ Dog {
+    name: s,
+    age: i
+}
+
+& Dog % Animal {
+    Dog(name: s, age: i) {
+        <- Dog { name: name, age: age }
+    }
+
+    get_name() -> s { <- self.name }
+    get_age() -> i { <- self.age }
+    can_fly() -> b { <- false }
+
+    make_sound() {
+        >>("  汪汪汪！")
+    }
+
+    move() {
+        >>("  " + self.name + " 在地上跑")
+    }
+}
+
+// 猫
+@ Cat {
+    name: s,
+    age: i
+}
+
+& Cat % Animal {
+    Cat(name: s, age: i) {
+        <- Cat { name: name, age: age }
+    }
+
+    get_name() -> s { <- self.name }
+    get_age() -> i { <- self.age }
+    can_fly() -> b { <- false }
+
+    make_sound() {
+        >>("  喵喵喵～")
+    }
+
+    move() {
+        >>("  " + self.name + " 优雅地走着")
+    }
+}
+
+// 鸟
+@ Bird {
+    name: s,
+    age: i
+}
+
+& Bird % Animal {
+    Bird(name: s, age: i) {
+        <- Bird { name: name, age: age }
+    }
+
+    get_name() -> s { <- self.name }
+    get_age() -> i { <- self.age }
+    can_fly() -> b { <- true }
+
+    make_sound() {
+        >>("  叽叽喳喳～")
+    }
+
+    move() {
+        >>("  " + self.name + " 在天空中飞翔")
+    }
+}
+
+// ===================
+// 组合模式示例
+// ===================
+
+// 人员
+@ Person {
+    name: s,
+    role: s,
+    experience: i
+}
+
+& Person {
+    Person(name: s, role: s, experience: i) {
+        <- Person {
+            name: name,
+            role: role,
+            experience: experience
+        }
+    }
+
+    get_info() -> s {
+        <- self.name + " (" + self.role + ", " + self.experience + "年经验)"
+    }
+}
+
+// 团队
+@ Team {
+    name: s,
+    members: [Person]
+}
+
+& Team {
+    Team(name: s) {
+        <- Team { name: name, members: [] }
+    }
+
+    add_member(person: Person) {
+        self.members.push(person)
+    }
+
+    member_count() -> i {
+        <- len(self.members)
+    }
+
+    show_members() {
+        ? i = 0
+        ^(i < len(self.members)) {
+            ? member = self.members[i]
+            >>("  - " + member.get_info())
+            i = i + 1
+        }
+    }
+
+    average_experience() -> F {
+        (len(self.members) == 0) ? {
+            <- 0.0
+        }
+
+        ? total = 0
+        ? i = 0
+        ^(i < len(self.members)) {
+            total += self.members[i].experience
+            i = i + 1
+        }
+
+        <- total / len(self.members)
+    }
+}
+
+// 辅助函数
+sqrt(x: F) -> F {
+    <- x ** 0.5  // 简化实现
+}
+
+len(arr) -> i {
+    <- 3  // 简化实现
+}

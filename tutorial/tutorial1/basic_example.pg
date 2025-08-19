@@ -1,0 +1,22 @@
+// 简单的 polyglot 程序示例
+>> "math"
+
+@ Player {
+    health: f,
+    position: Vector3
+}
+
+& Player {
+    take_damage(amount: f) {
+        _.health -= amount
+        (_.health <= 0.0) ? {
+            _.health = 0.0
+        }
+    }
+}
+
+main() {
+    ? player = Player { health: 100.0, position: Vector3 { x: 0.0, y: 0.0, z: 0.0 } }
+    player.take_damage(25.0)
+    <- 0
+}

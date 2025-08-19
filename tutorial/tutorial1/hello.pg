@@ -1,0 +1,56 @@
+// 这是注释：我的第一个 polyglot 程序！
+// polyglot Hello World 教程
+
+main() {
+    >>("Hello, polyglot!")
+
+    // 变量声明 - 使用 ? 符号询问系统要一个变量
+    ? greeting = "Welcome to polyglot"
+    ? language = "polyglot"
+    ? version = 1.0
+
+    >>(greeting)
+    >>("你正在学习: " + language)
+    >>("版本: " + version)
+
+    // 变量声明 - 使用 ? 符号询问系统要一个变量
+    ? name = "World"
+    ? age = 25
+    ? is_learning = true
+
+    >>("欢迎来到 polyglot 世界!")
+    >>("你好, " + name + "!")
+    >>("年龄: " + age)
+    >>("正在学习: " + is_learning)
+
+    // 简单计算
+    ? x = 10
+    ? y = 20
+    ? sum = x + y
+
+    >>(x + " + " + y + " = " + sum)
+
+    // 基本数学运算
+    ? a = 5.0
+    ? b = 3.0
+    ? addition = a + b
+    ? subtraction = a - b
+    ? multiplication = a * b
+    ? division = a / b
+
+    >>(a + " + " + b + " = " + addition)
+    >>(a + " - " + b + " = " + subtraction)
+    >>(a + " × " + b + " = " + multiplication)
+    >>(a + " ÷ " + b + " = " + division)
+
+    // 函数调用
+    ? greeting = say_hello("polyglot")
+    >>(greeting)
+
+    <- 0  // 返回 0 表示程序成功结束
+}
+
+// 简单函数定义
+say_hello(name) {
+    <- "Hello from " + name + " language!"
+}

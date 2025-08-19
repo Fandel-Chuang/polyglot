@@ -1,0 +1,11 @@
+// 有错误的测试文件
+>> "iostream"
+
+@ Player {
+    name: s,
+    health: f
+    // 故意缺少逗号
+
+main() {
+    ? player = Player("Test")  // 参数不匹配
+    <- 0

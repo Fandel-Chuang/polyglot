@@ -1,0 +1,153 @@
+// polyglot 数据类型与运算教程
+
+main() {
+    >>("=== polyglot 数据类型教程 ===")
+
+    // 1. 数字类型详解
+    >>("\n1. 数字类型:")
+    ? int_num = 42              // 整数
+    ? float_num = 3.14159       // 浮点数
+    ? negative = -123           // 负数
+    ? big_num = 1000000         // 大数
+
+    >>("整数: " + int_num)
+    >>("浮点数: " + float_num)
+    >>("负数: " + negative)
+    >>("大数: " + big_num)
+
+    // 2. 数学运算详解
+    >>("\n2. 数学运算:")
+    ? a = 15
+    ? b = 4
+
+    >>(a + " + " + b + " = " + (a + b))    // 加法
+    >>(a + " - " + b + " = " + (a - b))    // 减法
+    >>(a + " × " + b + " = " + (a * b))    // 乘法
+    >>(a + " ÷ " + b + " = " + (a / b))    // 除法
+    >>(a + " % " + b + " = " + (a % b))    // 取模
+    >>(a + " ^ " + b + " = " + (a ** b))   // 幂运算
+
+    // 3. 字符串高级操作
+    >>("\n3. 字符串操作:")
+    ? first_name = "张"
+    ? last_name = "三"
+    ? full_name = first_name + last_name
+    ? age_str = "25"
+
+    >>("姓: " + first_name)
+    >>("名: " + last_name)
+    >>("全名: " + full_name)
+    >>("年龄字符串: " + age_str)
+
+    // 字符串长度和操作
+    ? message = "Hello polyglot!"
+    >>("消息: " + message)
+    >>("消息长度: " + len(message))
+    >>("大写: " + upper(message))
+    >>("小写: " + lower(message))
+
+    // 4. 布尔逻辑运算
+    >>("\n4. 布尔逻辑:")
+    ? is_student = true
+    ? is_adult = true
+    ? has_license = false
+
+    >>("是学生: " + is_student)
+    >>("是成年人: " + is_adult)
+    >>("有驾照: " + has_license)
+
+    // 逻辑运算
+    >>("学生且成年: " + (is_student && is_adult))
+    >>("学生或有驾照: " + (is_student || has_license))
+    >>("不是学生: " + (!is_student))
+
+    // 5. 比较运算
+    >>("\n5. 比较运算:")
+    ? score1 = 85
+    ? score2 = 92
+
+    >>(score1 + " == " + score2 + ": " + (score1 == score2))  // 等于
+    >>(score1 + " != " + score2 + ": " + (score1 != score2))  // 不等于
+    >>(score1 + " < " + score2 + ": " + (score1 < score2))    // 小于
+    >>(score1 + " > " + score2 + ": " + (score1 > score2))    // 大于
+    >>(score1 + " <= " + score2 + ": " + (score1 <= score2))  // 小于等于
+    >>(score1 + " >= " + score2 + ": " + (score1 >= score2))  // 大于等于
+
+    // 6. 数组基础
+    >>("\n6. 数组操作:")
+    ? numbers = [1, 2, 3, 4, 5]
+    ? names = ["Alice", "Bob", "Charlie"]
+    ? mixed = [42, "hello", true, 3.14]
+
+    >>("数字数组: " + numbers)
+    >>("名字数组: " + names)
+    >>("混合数组: " + mixed)
+
+    // 数组访问
+    >>("第一个数字: " + numbers[0])
+    >>("第二个名字: " + names[1])
+    >>("数组长度: " + len(numbers))
+
+    // 7. 常量定义 - 使用 * 符号
+    >>("\n7. 常量定义:")
+    * PI = 3.14159265359        // 数学常量 π
+    * COMPANY_NAME = "polyglot Corp"
+    * MAX_USERS = 1000
+    * IS_PRODUCTION = false
+
+    >>("π 的值: " + PI)
+    >>("公司名: " + COMPANY_NAME)
+    >>("最大用户数: " + MAX_USERS)
+    >>("生产环境: " + IS_PRODUCTION)
+
+    // 使用常量计算
+    ? radius = 10.0
+    ? circle_area = PI * radius * radius
+    ? circle_circumference = 2 * PI * radius
+
+    >>("半径: " + radius)
+    >>("圆的面积: " + circle_area)
+    >>("圆的周长: " + circle_circumference)
+
+    // 8. 类型转换示例
+    >>("\n8. 类型转换:")
+    ? number_str = "123"
+    ? number_val = to_number(number_str)
+    ? text_from_num = to_string(456)
+    ? bool_from_str = to_bool("true")
+
+    >>("字符串 '123' 转数字: " + number_val)
+    >>("数字 456 转字符串: '" + text_from_num + "'")
+    >>("字符串 'true' 转布尔: " + bool_from_str)
+
+    <- 0
+}
+
+// 辅助函数：演示字符串长度（模拟）
+len(text) {
+    // 这里是模拟实现，实际编译器会提供内置函数
+    <- 10  // 简化返回固定值
+}
+
+// 辅助函数：字符串转大写（模拟）
+upper(text) {
+    <- "HELLO POLYGLOT!"  // 简化实现
+}
+
+// 辅助函数：字符串转小写（模拟）
+lower(text) {
+    <- "hello polyglot!"  // 简化实现
+}
+
+// 辅助函数：类型转换（模拟）
+to_number(str) {
+    <- 123  // 简化实现
+}
+
+to_string(num) {
+    <- "456"  // 简化实现
+}
+
+to_bool(str) {
+    <- true  // 简化实现
+}

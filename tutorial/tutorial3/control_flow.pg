@@ -1,0 +1,212 @@
+// polyglot 控制流程教程
+
+main() {
+    >>("=== polyglot 控制流程教程 ===")
+
+    // 1. 基本条件语句 - 使用 ? 符号
+    >>("\n1. 基本条件语句:")
+    ? age = 20
+    ? score = 85
+
+    (age >= 18) ? {
+        >>("你已经成年了！")
+    }
+
+    (score >= 90) ? {
+        >>("优秀！")
+    } : {
+        >>("继续努力！")
+    }
+
+    // 2. 复合条件判断
+    >>("\n2. 复合条件判断:")
+    ? temperature = 25
+    ? is_sunny = true
+
+    (temperature > 20 && is_sunny) ? {
+        >>("今天天气很好，适合出去玩！")
+    } : {
+        >>("今天不太适合户外活动")
+    }
+
+    // 多重条件判断
+    (temperature < 0) ? {
+        >>("很冷，注意保暖")
+    } : (temperature < 20) ? {
+        >>("有点凉，多穿点衣服")
+    } : (temperature < 30) ? {
+        >>("温度适宜")
+    } : {
+        >>("很热，注意防暑")
+    }
+
+    // 3. 基本循环 - 使用 ^ 符号
+    >>("\n3. 基本循环:")
+    ? i = 1
+    ^(i <= 5) {
+        >>("第 " + i + " 次循环")
+        i = i + 1
+    }
+
+    // 倒计时循环
+    ? countdown = 5
+    >>("倒计时开始:")
+    ^(countdown > 0) {
+        >>(countdown + "...")
+        countdown = countdown - 1
+    }
+    >>("时间到！")
+
+    // 4. 数组遍历
+    >>("\n4. 数组遍历:")
+    ? fruits = ["苹果", "香蕉", "橙子", "葡萄"]
+    ? index = 0
+
+    >>("水果清单:")
+    ^(index < len(fruits)) {
+        >>((index + 1) + ". " + fruits[index])
+        index = index + 1
+    }
+
+    // 5. 模式匹配 - 使用 # 符号
+    >>("\n5. 模式匹配:")
+
+    // 简单值匹配
+    ? day_of_week = 3
+    ? day_name = ""
+
+    #(day_of_week) {
+        1 => day_name = "星期一",
+        2 => day_name = "星期二",
+        3 => day_name = "星期三",
+        4 => day_name = "星期四",
+        5 => day_name = "星期五",
+        6 => day_name = "星期六",
+        7 => day_name = "星期日",
+        _ => day_name = "无效日期"
+    }
+    >>("今天是: " + day_name)
+
+    // 成绩等级匹配
+    ? student_score = 88
+    ? grade = ""
+
+    #(student_score) {
+        (90..100) => grade = "A",
+        (80..89) => grade = "B",
+        (70..79) => grade = "C",
+        (60..69) => grade = "D",
+        (0..59) => grade = "F",
+        _ => grade = "无效分数"
+    }
+    >>("分数 " + student_score + " 对应等级: " + grade)
+
+    // 6. 嵌套控制结构
+    >>("\n6. 嵌套控制结构:")
+    ? matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    ? row = 0
+
+    >>("3x3 矩阵:")
+    ^(row < 3) {
+        ? col = 0
+        ? row_text = ""
+
+        ^(col < 3) {
+            row_text = row_text + matrix[row][col] + " "
+            col = col + 1
+        }
+
+        >>(row_text)
+        row = row + 1
+    }
+
+    // 7. 带控制的循环
+    >>("\n7. 带控制的循环:")
+    ? numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    ? sum = 0
+    ? count = 0
+
+    ^(count < len(numbers)) {
+        ? current = numbers[count]
+
+        // 跳过偶数
+        (current % 2 == 0) ? {
+            count = count + 1
+            continue
+        }
+
+        sum = sum + current
+        >>("加入奇数: " + current + ", 当前和: " + sum)
+
+        // 如果和超过15就停止
+        (sum > 15) ? {
+            >>("和已超过15，停止计算")
+            break
+        }
+
+        count = count + 1
+    }
+
+    >>("最终奇数和: " + sum)
+
+    // 8. 条件赋值表达式
+    >>("\n8. 条件赋值:")
+    ? weather = "sunny"
+    ? activity = (weather == "sunny") ? "去公园" : "在家读书"
+    >>("天气: " + weather + ", 活动: " + activity)
+
+    ? num1 = 15
+    ? num2 = 20
+    ? max_num = (num1 > num2) ? num1 : num2
+    ? min_num = (num1 < num2) ? num1 : num2
+    >>("较大数: " + max_num + ", 较小数: " + min_num)
+
+    // 9. 函数中的控制流
+    >>("\n9. 函数控制流:")
+    ? result1 = check_number(15)
+    ? result2 = check_number(-5)
+    ? result3 = check_number(0)
+
+    >>("15 的检查结果: " + result1)
+    >>("-5 的检查结果: " + result2)
+    >>("0 的检查结果: " + result3)
+
+    // 10. 高级模式匹配
+    >>("\n10. 高级模式匹配:")
+    ? user_role = "admin"
+    ? permissions = get_permissions(user_role)
+    >>("用户角色: " + user_role + ", 权限: " + permissions)
+
+    <- 0
+}
+
+// 数字检查函数
+check_number(num) {
+    (num > 0) ? {
+        <- "正数"
+    } : (num < 0) ? {
+        <- "负数"
+    } : {
+        <- "零"
+    }
+}
+
+// 权限获取函数 - 使用模式匹配
+get_permissions(role) {
+    ? permissions = ""
+
+    #(role) {
+        "admin" => permissions = "所有权限",
+        "manager" => permissions = "管理权限",
+        "user" => permissions = "基本权限",
+        "guest" => permissions = "只读权限",
+        _ => permissions = "无权限"
+    }
+
+    <- permissions
+}
+
+// 模拟数组长度函数
+len(arr) {
+    <- 4  // 简化实现
+}

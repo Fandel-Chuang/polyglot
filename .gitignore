@@ -1,0 +1,70 @@
+# 编译输出文件
+*.exe
+*.out
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# 构建目录
+build/
+bin/
+obj/
+dist/
+
+# 生成的C++文件
+*_generated.cpp
+*_generated.c
+
+# polyglot编译器输出文件
+polyglot.exe
+polyglot
+
+# IDE和编辑器文件
+.vscode/
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+.idea/
+*.iml
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Node.js (如果用到)
+node_modules/
+npm-debug.log
+
+# Python (如果用到)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# 测试和调试文件
+test_output/
+debug/
+*.dump
+core
+
+# 文档生成文件
+docs/_build/
+site/
