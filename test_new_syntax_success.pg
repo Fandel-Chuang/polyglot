@@ -1,0 +1,18 @@
+// 新语法测试成功示例 - polyglot v1.0.0
+>> "iostream"
+
+main() {
+    // ✅ 新语法：类型推导 (相当于 C++ 的 auto)
+    x: ? = 42          // → auto x = 42;
+    name: ? = "Alice"  // → auto name = "Alice";
+    flag: ? = true     // → auto flag = true;
+
+    // ✅ 新语法：显式类型声明
+    age: int = 25      // → int age = 25;
+    score: float = 98.5 // → float score = 98.5;
+
+    // ✅ 计算表达式的类型推导
+    sum: ? = x + age   // → auto sum = x + age; (推导为 int)
+
+    <- 0
+}

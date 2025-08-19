@@ -164,7 +164,11 @@ void compile(const std::string& sourceCode, const std::string& filename) {
         // 3. 语义分析 (Semantic Analysis)
         std::cout << "🧠 步骤 3: 语义分析..." << std::endl;
         SemanticAnalyzer semanticAnalyzer;
-        semanticAnalyzer.analyze(ast);
+        bool semanticSuccess = semanticAnalyzer.analyze(ast);
+        if (!semanticSuccess) {
+            std::cerr << "❌ 语义分析失败，停止编译" << std::endl;
+            return;
+        }
         std::cout << "   ✅ 语义检查通过" << std::endl;
 
         // 4. 代码生成 (Code Generation)

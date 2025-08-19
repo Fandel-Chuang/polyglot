@@ -4,19 +4,19 @@
 main() {
     >>("Hello, polyglot!")
 
-    // 变量声明 - 使用 ? 符号询问系统要一个变量
-    ? greeting = "Welcome to polyglot"
-    ? language = "polyglot"
-    ? version = 1.0
+    // 新语法：类型推导 (v1.0.0)
+    greeting: ? = "Welcome to polyglot"
+    language: ? = "polyglot"
+    version: ? = 1.0
 
     >>(greeting)
     >>("你正在学习: " + language)
     >>("版本: " + version)
 
-    // 变量声明 - 使用 ? 符号询问系统要一个变量
-    ? name = "World"
-    ? age = 25
-    ? is_learning = true
+    // 新语法：显式类型声明和类型推导
+    name: ? = "World"           // 类型推导 → string
+    age: int = 25              // 显式类型 → int
+    is_learning: ? = true      // 类型推导 → bool
 
     >>("欢迎来到 polyglot 世界!")
     >>("你好, " + name + "!")
@@ -24,19 +24,19 @@ main() {
     >>("正在学习: " + is_learning)
 
     // 简单计算
-    ? x = 10
-    ? y = 20
-    ? sum = x + y
+    x: ? = 10                  // 类型推导 → int
+    y: ? = 20                  // 类型推导 → int
+    sum: ? = x + y             // 类型推导 → int
 
     >>(x + " + " + y + " = " + sum)
 
     // 基本数学运算
-    ? a = 5.0
-    ? b = 3.0
-    ? addition = a + b
-    ? subtraction = a - b
-    ? multiplication = a * b
-    ? division = a / b
+    a: float = 5.0             // 显式类型 → float
+    b: float = 3.0             // 显式类型 → float
+    addition: ? = a + b        // 类型推导 → float
+    subtraction: ? = a - b     // 类型推导 → float
+    multiplication: ? = a * b  // 类型推导 → float
+    division: ? = a / b        // 类型推导 → float
 
     >>(a + " + " + b + " = " + addition)
     >>(a + " - " + b + " = " + subtraction)
@@ -44,13 +44,13 @@ main() {
     >>(a + " ÷ " + b + " = " + division)
 
     // 函数调用
-    ? greeting = say_hello("polyglot")
+    greeting_result: ? = say_hello("polyglot")
     >>(greeting)
 
     <- 0  // 返回 0 表示程序成功结束
 }
 
 // 简单函数定义
-say_hello(name) {
+say_hello(name: string) {
     <- "Hello from " + name + " language!"
 }

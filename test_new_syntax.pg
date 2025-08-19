@@ -1,0 +1,14 @@
+// 测试新的变量声明语法
+>> "iostream"
+
+main() {
+    // 新语法：类型推导
+    x: ? = 42
+    name: ? = "Hello"
+
+    // 新语法：显式类型
+    age: int = 25
+    score: float = 98.5
+
+    <- x
+}

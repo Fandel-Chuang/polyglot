@@ -3,12 +3,12 @@
 main() {
     >>("=== polyglot 数据类型教程 ===")
 
-    // 1. 数字类型详解
+    // 1. 数字类型详解 (新语法 v1.0.0)
     >>("\n1. 数字类型:")
-    ? int_num = 42              // 整数
-    ? float_num = 3.14159       // 浮点数
-    ? negative = -123           // 负数
-    ? big_num = 1000000         // 大数
+    int_num: ? = 42              // 类型推导 → int
+    float_num: ? = 3.14159       // 类型推导 → float
+    negative: int = -123         // 显式类型 → int
+    big_num: ? = 1000000         // 类型推导 → int
 
     >>("整数: " + int_num)
     >>("浮点数: " + float_num)
@@ -17,8 +17,8 @@ main() {
 
     // 2. 数学运算详解
     >>("\n2. 数学运算:")
-    ? a = 15
-    ? b = 4
+    a: ? = 15                    // 类型推导 → int
+    b: ? = 4                     // 类型推导 → int
 
     >>(a + " + " + b + " = " + (a + b))    // 加法
     >>(a + " - " + b + " = " + (a - b))    // 减法
@@ -29,10 +29,10 @@ main() {
 
     // 3. 字符串高级操作
     >>("\n3. 字符串操作:")
-    ? first_name = "张"
-    ? last_name = "三"
-    ? full_name = first_name + last_name
-    ? age_str = "25"
+    first_name: ? = "张"         // 类型推导 → string
+    last_name: ? = "三"          // 类型推导 → string
+    full_name: ? = first_name + last_name  // 类型推导 → string
+    age_str: string = "25"       // 显式类型 → string
 
     >>("姓: " + first_name)
     >>("名: " + last_name)
@@ -40,7 +40,7 @@ main() {
     >>("年龄字符串: " + age_str)
 
     // 字符串长度和操作
-    ? message = "Hello polyglot!"
+    message: ? = "Hello polyglot!"  // 类型推导 → string
     >>("消息: " + message)
     >>("消息长度: " + len(message))
     >>("大写: " + upper(message))
@@ -48,9 +48,9 @@ main() {
 
     // 4. 布尔逻辑运算
     >>("\n4. 布尔逻辑:")
-    ? is_student = true
-    ? is_adult = true
-    ? has_license = false
+    is_student: ? = true         // 类型推导 → bool
+    is_adult: bool = true        // 显式类型 → bool
+    has_license: ? = false       // 类型推导 → bool
 
     >>("是学生: " + is_student)
     >>("是成年人: " + is_adult)
@@ -63,8 +63,8 @@ main() {
 
     // 5. 比较运算
     >>("\n5. 比较运算:")
-    ? score1 = 85
-    ? score2 = 92
+    score1: ? = 85               // 类型推导 → int
+    score2: ? = 92               // 类型推导 → int
 
     >>(score1 + " == " + score2 + ": " + (score1 == score2))  // 等于
     >>(score1 + " != " + score2 + ": " + (score1 != score2))  // 不等于
@@ -75,9 +75,9 @@ main() {
 
     // 6. 数组基础
     >>("\n6. 数组操作:")
-    ? numbers = [1, 2, 3, 4, 5]
-    ? names = ["Alice", "Bob", "Charlie"]
-    ? mixed = [42, "hello", true, 3.14]
+    numbers: ? = [1, 2, 3, 4, 5]       // 类型推导 → Array<int>
+    names: ? = ["Alice", "Bob", "Charlie"]  // 类型推导 → Array<string>
+    mixed: ? = [42, "hello", true, 3.14]    // 类型推导 → Array<mixed>
 
     >>("数字数组: " + numbers)
     >>("名字数组: " + names)

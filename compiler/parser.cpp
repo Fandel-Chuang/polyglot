@@ -144,41 +144,33 @@ std::unique_ptr<StructDecl> Parser::parseStructDef() {
     return structDecl;
 }
 
-// 解析变量声明: name: type 或 ? name = value
+// 解析变量声明: name: type 或 name: ? = value
 std::unique_ptr<VariableDecl> Parser::parseVariableDecl() {
     auto varDecl = std::make_unique<VariableDecl>();
 
+    if (peek().type != TokenType::IDENTIFIER) {
+        throw ParserError("期望变量名", peek().line, peek().column);
+    }
+
+    varDecl->name = advance().value;
+
+    consume(TokenType::COLON, "期望 ':'");
+
+    // 检查类型位置
     if (peek().type == TokenType::QUESTION) {
-        // ? variable = value 形式
+        // name: ? = value 形式 (auto 类型推导)
         advance(); // 跳过 ?
-
-        if (peek().type != TokenType::IDENTIFIER) {
-            throw ParserError("期望变量名", peek().line, peek().column);
-        }
-
-        varDecl->name = advance().value;
-
-        if (peek().type == TokenType::COLON) {
-            // 显式类型: ? name: type = value
-            advance(); // 跳过 :
-            if (peek().type == TokenType::IDENTIFIER) {
-                varDecl->type = std::make_unique<TypeNode>(advance().value);
-            }
-        }
-
-        if (peek().type == TokenType::ASSIGN) {
-            advance(); // 跳过 =
-            varDecl->initializer = parseExpression();
-        }
+        // 不设置 varDecl->type，让语义分析器推导类型
     } else if (peek().type == TokenType::IDENTIFIER) {
-        // name: type 形式（结构体字段）
-        varDecl->name = advance().value;
+        // name: type = value 形式 (显式类型)
+        varDecl->type = std::make_unique<TypeNode>(advance().value);
+    } else {
+        throw ParserError("期望类型名或 '?' 进行类型推导", peek().line, peek().column);
+    }
 
-        consume(TokenType::COLON, "期望 ':'");
-
-        if (peek().type == TokenType::IDENTIFIER) {
-            varDecl->type = std::make_unique<TypeNode>(advance().value);
-        }
+    if (peek().type == TokenType::ASSIGN) {
+        advance(); // 跳过 =
+        varDecl->initializer = parseExpression();
     }
 
     return varDecl;
@@ -290,8 +282,15 @@ std::unique_ptr<Statement> Parser::parseStatement() {
               << ", 值='" << current.value << "'" << std::endl;
 
     switch (current.type) {
-        case TokenType::QUESTION:      // ? 变量声明
-            return parseVariableDeclStmt();
+        case TokenType::IDENTIFIER: {
+            // 检查是否为变量声明 (identifier: type 或 identifier: ?)
+            if ((this->current + 1) < tokens.size() && tokens[this->current + 1].type == TokenType::COLON) {
+                return parseVariableDeclStmt();
+            } else {
+                // 其他标识符语句（表达式语句等）
+                return parseExpressionStmt();
+            }
+        }
         case TokenType::RETURN_ARROW:  // <- 返回语句
             return parseReturnStmt();
         case TokenType::LEFT_BRACE:    // { 代码块

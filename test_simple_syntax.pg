@@ -1,0 +1,17 @@
+// 测试新语法的简单示例
+>> "iostream"
+
+main() {
+    // 新语法测试
+    x: ? = 42
+    name: ? = "Alice"
+    age: int = 25
+    score: float = 98.5
+
+    print(x)
+    print(name)
+    print(age)
+    print(score)
+
+    <- 0
+}

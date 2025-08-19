@@ -16,7 +16,8 @@
 }
 
 main() {
-    ? player = Player { health: 100.0, position: Vector3 { x: 0.0, y: 0.0, z: 0.0 } }
+    // 新语法：类型推导 (v1.0.0)
+    player: ? = Player { health: 100.0, position: Vector3 { x: 0.0, y: 0.0, z: 0.0 } }
     player.take_damage(25.0)
     <- 0
 }
