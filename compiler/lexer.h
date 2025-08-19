@@ -29,18 +29,21 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <locale>
+#include <codecvt>
 
 // Token 类型枚举
 enum TokenType {
     // 特殊符号 (polyglot 符号语法)
     IMPORT,           // >>
-    VARIABLE,         // ?
+    QUESTION,         // ?
     CONDITIONAL_ASSIGN, // :=
-    RETURN,           // <-
+    RETURN_ARROW,     // <-
     STRUCT_DEF,       // @
-    IMPL,             // &
+    IMPL_DEF,         // &
     INTERFACE,        // %
     ENUM,             // #
+    ARROW,            // ->
     MATCH,            // #( ... )
     CONDITION,        // ( ... ) ?
     LOOP,             // ^( ... )
@@ -49,6 +52,7 @@ enum TokenType {
     CONSTANT,         // *
     BREAK_STMT,       // <<
     CONTINUE_STMT,    // ->
+    VARIABLE_PREFIX,  // $ (变量名前缀)
 
     // 基本数据类型符号
     TYPE_I8,          // i (8位整数)
@@ -153,6 +157,21 @@ private:
     void scanNumber();
     void scanIdentifier();
     void scanSymbol();
+
+    // Unicode和全角符号处理函数
+    std::string peekUTF8Char();
+    std::string advanceUTF8Char();
+    bool isUnicodeSymbol(const std::string& str);
+    bool isChineseChar(const std::string& str);
+    bool isFullWidthSymbol(const std::string& str);
+    void scanUnicodeSymbol();
+    void scanChineseIdentifier();
+    int getUTF8CharLength(char firstByte);
+
+    // 符号模式检测
+    enum SymbolMode { HALF_WIDTH, FULL_WIDTH, MIXED };
+    SymbolMode detectSymbolMode();
+    void validateSymbolConsistency();
 
 public:
     Lexer(const std::string& sourceCode);

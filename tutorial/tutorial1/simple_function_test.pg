@@ -1,0 +1,20 @@
+// polyglot 简单函数测试
+// 测试基本的函数定义和代码生成
+
+// 简单的加法函数
+add(a: int, b: int) -> int {
+    <- a + b
+}
+
+// 简单的问候函数
+greet(name: string) {
+    ? message = "Hello, " + name
+    <- message
+}
+
+// 主函数
+main() -> int {
+    ? result = add(5, 3)
+    ? greeting = greet("polyglot")
+    <- 0
+}
