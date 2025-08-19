@@ -16,6 +16,7 @@ private:
     void generateExpressionStmt(ExpressionStmt* exprStmt);
     void generateBlock(Block* block);
     void generateExpression(ASTNode* expr);
+    void generateFunctionCall(FunctionCall* funcCall);
     void generateLiteral(Literal* literal);
     void generateBinaryOp(BinaryOp* binaryOp);
 

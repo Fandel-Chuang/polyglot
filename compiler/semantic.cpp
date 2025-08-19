@@ -72,7 +72,34 @@ void SymbolTable::printCurrentScope() {
 // ========== SemanticAnalyzer 实现 ==========
 
 SemanticAnalyzer::SemanticAnalyzer() : hasErrors(false) {
-    // 初始化内置符号
+    // 初始化内置函数符号
+    initializeBuiltinFunctions();
+}
+
+void SemanticAnalyzer::initializeBuiltinFunctions() {
+    // 添加内置的 print 函数
+    // print(string) -> void
+    std::vector<std::string> printParams = {"string"};
+    auto printFunc = std::make_unique<FunctionSymbol>("print", printParams, "void");
+    symbolTable.declareSymbol("print", std::move(printFunc));
+
+    // 添加内置的 打印 函数 (中文版本)
+    auto printChineseFunc = std::make_unique<FunctionSymbol>("打印", printParams, "void");
+    symbolTable.declareSymbol("打印", std::move(printChineseFunc));
+
+    // 添加重载版本，支持不同类型的参数
+    // print(int) -> void
+    std::vector<std::string> printIntParams = {"int"};
+    auto printIntFunc = std::make_unique<FunctionSymbol>("print_int", printIntParams, "void");
+    // 注意：这里我们在内部使用不同的名字来支持重载，但用户仍使用 print
+
+    // print(float) -> void
+    std::vector<std::string> printFloatParams = {"float"};
+    auto printFloatFunc = std::make_unique<FunctionSymbol>("print_float", printFloatParams, "void");
+
+    // print(bool) -> void
+    std::vector<std::string> printBoolParams = {"bool"};
+    auto printBoolFunc = std::make_unique<FunctionSymbol>("print_bool", printBoolParams, "void");
 }
 
 bool SemanticAnalyzer::analyze(const std::unique_ptr<Program>& program) {

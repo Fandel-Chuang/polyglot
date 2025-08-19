@@ -209,6 +209,34 @@ void CodeGenerator::generateExpression(ASTNode* expr) {
         generateLiteral(literal);
     } else if (auto binaryOp = dynamic_cast<BinaryOp*>(expr)) {
         generateBinaryOp(binaryOp);
+    } else if (auto funcCall = dynamic_cast<FunctionCall*>(expr)) {
+        generateFunctionCall(funcCall);
+    }
+}
+
+void CodeGenerator::generateFunctionCall(FunctionCall* funcCall) {
+    // 检查是否是内置的print函数
+    if (funcCall->name == "print" || funcCall->name == "打印") {
+        output += "std::cout";
+
+        // 处理参数
+        for (size_t i = 0; i < funcCall->arguments.size(); ++i) {
+            output += " << ";
+            generateExpression(funcCall->arguments[i].get());
+        }
+
+        // 自动添加换行
+        output += " << std::endl";
+    } else {
+        // 普通函数调用
+        output += funcCall->name + "(";
+
+        for (size_t i = 0; i < funcCall->arguments.size(); ++i) {
+            if (i > 0) output += ", ";
+            generateExpression(funcCall->arguments[i].get());
+        }
+
+        output += ")";
     }
 }
 

@@ -147,9 +147,9 @@ void compile(const std::string& sourceCode, const std::string& filename) {
         std::vector<Token> tokens = lexer.tokenize();
         std::cout << "   🔤 词法分析完成" << std::endl;
 
-        // 调试：仅打印前几个Token
-        std::cout << "   🔍 前5个Token:" << std::endl;
-        size_t maxTokens = tokens.size() < 5 ? tokens.size() : 5;
+        // 调试：打印前20个Token用于分析
+        std::cout << "   🔍 前20个Token:" << std::endl;
+        size_t maxTokens = tokens.size() < 20 ? tokens.size() : 20;
         for (size_t i = 0; i < maxTokens; ++i) {
             std::cout << "     [" << i << "] 类型=" << static_cast<int>(tokens[i].type)
                       << ", 值='" << tokens[i].value << "'" << std::endl;

@@ -423,8 +423,29 @@ std::unique_ptr<Expression> Parser::parsePrimaryExpression() {
     Token& current = peek();
 
     switch (current.type) {
-        case TokenType::IDENTIFIER:
-            return std::make_unique<Identifier>(advance().value);
+        case TokenType::IDENTIFIER: {
+            std::string name = advance().value;
+
+            // 检查是否是函数调用 (后面跟着左括号)
+            if (peek().type == TokenType::LEFT_PAREN) {
+                advance(); // 跳过 (
+
+                auto funcCall = std::make_unique<FunctionCall>(name);
+
+                // 解析参数列表
+                if (peek().type != TokenType::RIGHT_PAREN) {
+                    do {
+                        funcCall->arguments.push_back(parseExpression());
+                    } while (peek().type == TokenType::COMMA && advance().type == TokenType::COMMA);
+                }
+
+                consume(TokenType::RIGHT_PAREN, "期望 ')'");
+                return std::move(funcCall);
+            } else {
+                // 普通标识符
+                return std::make_unique<Identifier>(name);
+            }
+        }
 
         case TokenType::INTEGER_LITERAL:
             return std::make_unique<Literal>(advance().value, "int");

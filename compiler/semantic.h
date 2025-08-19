@@ -68,6 +68,9 @@ private:
     std::vector<SemanticErrorInfo> errors;
     bool hasErrors = false;
 
+    // 内置函数初始化
+    void initializeBuiltinFunctions();
+
     // 内置类型检查
     bool isBuiltinType(const std::string& type);
     std::string getExpressionType(Expression* expr);

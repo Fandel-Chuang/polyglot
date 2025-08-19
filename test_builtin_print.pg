@@ -1,0 +1,19 @@
+// Test built-in print function - polyglot v1.0.0
+// No need to import iostream!
+
+main() {
+    // Test new syntax with type inference
+    name: ? = "Alice"
+    age: ? = 25
+    score: ? = 95.5
+    is_student: ? = true
+
+    // Test built-in print function
+    print("=== polyglot v1.0.0 Test ===")
+    print("Name: " + name)
+    print("Age: " + age)
+    print("Score: " + score)
+    print("Is Student: " + is_student)
+
+    <- 0
+}

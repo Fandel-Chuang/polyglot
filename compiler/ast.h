@@ -93,6 +93,14 @@ struct BinaryOp : public Expression {
     std::unique_ptr<Expression> right;
 };
 
+// 函数调用表达式
+struct FunctionCall : public Expression {
+    std::string name;
+    std::vector<std::unique_ptr<Expression>> arguments;
+
+    FunctionCall(const std::string& n) : name(n) {}
+};
+
 // 块语句
 struct Block : public Statement {
     std::vector<std::unique_ptr<Statement>> statements;
