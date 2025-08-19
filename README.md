@@ -3,8 +3,10 @@
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Language](https://img.shields.io/badge/language-C%2B%2B17-orange.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
+![Chinese](https://img.shields.io/badge/中文编程-支持-red.svg)
 
-一个革命性的编程语言，支持符号化语法和中文编程，采用智能内存管理，零垃圾回收器设计。
+一个革命性的编程语言，支持符号化语法和中文编程，采用智能内存管理，零垃圾回收器设计。**首个支持Windows系统级文件关联的中文编程语言！**
 
 ## 🌟 特色功能
 
@@ -26,18 +28,48 @@
 - 支持UTF-8编码的终端
 - JSON配置文件支持
 
-### 编译安装
+### 🖱️ Windows一键安装（推荐）
+```bash
+# 下载项目后，右键以管理员身份运行
+一键安装文达编译器.bat
+```
+**安装后可以双击 `.文达` 或 `.pg` 文件直接编译！**
+
+### 🔧 手动编译安装
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/Fandel-Chuang/polyglot.git
 cd polyglot
 
-# 编译编译器
-cd compiler
-g++ -std=c++17 -O2 *.cpp -o polyglot.exe
+# Windows: 使用中文构建脚本
+构建达文编译器.cmd
+
+# Linux/macOS: 使用构建脚本
+./build.sh
 
 # 测试安装
-./polyglot.exe ../examples/hello_world.pg
+文达.bat ai_tests/测试/中文语法测试.文达
+```
+
+### 📋 使用方式
+
+#### Windows图形界面（安装文件关联后）
+```bash
+# 双击编译 - 像使用Office一样简单
+双击 ai_tests/测试/中文语法测试.文达
+
+# 右键编译 - 文件管理器右键菜单
+右键文件 -> "用文达编译器编译"
+```
+
+#### 命令行使用
+```bash
+# 中文命令（推荐）
+文达.bat your_program.文达
+文达.bat your_program.pg
+
+# 英文命令
+./compiler/polyglot.exe your_program.pg
 ```
 
 ## 📚 语法指南
@@ -103,7 +135,48 @@ main() {
 ｝
 ```
 
-## 🔧 编译器架构
+## �️ Windows系统集成
+
+### 文件关联安装
+
+polyglot/文达是**首个支持Windows系统级文件关联的中文编程语言**，提供完整的图形界面集成体验。
+
+#### 🚀 一键安装（推荐）
+```bash
+# 右键以管理员身份运行
+一键安装文达编译器.bat
+```
+
+#### 🔧 分步安装
+```bash
+# 1. 生成动态注册表文件
+生成文达文件关联.bat
+
+# 2. 安装文件关联（需管理员权限）
+安装文达文件关联.bat
+
+# 3. 卸载文件关联
+卸载文达文件关联.bat
+```
+
+#### ✨ 安装后效果
+
+**文件管理器集成**：
+- `.文达` 文件显示为"文达源代码文件"
+- `.pg` 文件显示为"Polyglot源代码文件"
+- 双击文件直接编译并显示结果
+
+**右键菜单**：
+- **用文达编译器编译** - 直接编译选中文件
+- **编辑** - 用记事本打开文件
+
+**技术特色**：
+- 🎯 **动态路径生成** - 支持任意位置安装
+- 🔄 **智能权限管理** - 自动检测管理员权限需求
+- 🇨🇳 **完全中文化** - 菜单、提示全中文
+- 🚀 **零配置使用** - 安装后开箱即用
+
+## �🔧 编译器架构
 
 ### 编译流程
 1. **词法分析** - 支持Unicode和全角符号解析
@@ -252,12 +325,39 @@ clang-format -i compiler/*.cpp compiler/*.h
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
+## � 项目文件说明
+
+### 🚀 构建和安装脚本
+| 文件名 | 功能 | 平台 |
+|--------|------|------|
+| `一键安装文达编译器.bat` | 全自动安装（构建+文件关联） | Windows |
+| `构建达文编译器.cmd` | 中文构建脚本 | Windows |
+| `文达.bat` | 中文编译器命令 | Windows |
+| `build.bat` | 英文构建脚本 | Windows |
+| `build.sh` | Unix构建脚本 | Linux/macOS |
+
+### 🖱️ Windows文件关联系统
+| 文件名 | 功能 |
+|--------|------|
+| `生成文达文件关联.bat` | 动态生成注册表文件 |
+| `安装文达文件关联.bat` | 安装文件关联 |
+| `卸载文达文件关联.bat` | 移除文件关联 |
+| `Windows文件关联安装指南.md` | 详细安装说明 |
+
+### 📚 测试和示例
+| 目录 | 内容 |
+|------|------|
+| `ai_tests/basic_syntax/` | 基础语法测试 |
+| `ai_tests/examples/` | 编程示例 |
+| `ai_tests/测试/` | 中文测试文件 |
+| `ai_tests/semantic_tests/` | 语义分析测试 |
+
 ## 🔗 相关链接
 
-- [语法参考](docs/syntax-reference.md)
-- [API文档](docs/api-reference.md)
-- [游戏开发教程](docs/game-development.md)
-- [性能基准测试](docs/benchmarks.md)
+- [Windows文件关联安装指南](Windows文件关联安装指南.md)
+- [语法参考](SYNTAX_UPDATE_v1.0.0.md)
+- [项目进展](PROGRESS.md)
+- [快速开始指南](QUICKSTART.md)
 
 ## 👥 贡献者
 

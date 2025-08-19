@@ -1,0 +1,63 @@
+Windows Registry Editor Version 5.00
+
+; 注册 .文达 文件扩展名
+[HKEY_CLASSES_ROOT\.文达]
+@="WenDaFile"
+"Content Type"="text/plain"
+
+; 注册 .pg 文件扩展名
+[HKEY_CLASSES_ROOT\.pg]
+@="PolyglotFile"
+"Content Type"="text/plain"
+
+; 定义文达文件类型
+[HKEY_CLASSES_ROOT\WenDaFile]
+@="文达源代码文件"
+"EditFlags"=dword:00000000
+
+[HKEY_CLASSES_ROOT\WenDaFile\DefaultIcon]
+@="%SystemRoot%\\System32\\notepad.exe,0"
+
+[HKEY_CLASSES_ROOT\WenDaFile\shell]
+@="compile"
+
+; 编译选项
+[HKEY_CLASSES_ROOT\WenDaFile\shell\compile]
+@="用文达编译器编译"
+"Icon"="%SystemRoot%\\System32\\cmd.exe,0"
+
+[HKEY_CLASSES_ROOT\WenDaFile\shell\compile\command]
+@="\"%REG_PATH%\" \"%1\""
+
+; 编辑选项
+[HKEY_CLASSES_ROOT\WenDaFile\shell\edit]
+@="编辑"
+
+[HKEY_CLASSES_ROOT\WenDaFile\shell\edit\command]
+@="notepad.exe \"%1\""
+
+; 定义Polyglot文件类型
+[HKEY_CLASSES_ROOT\PolyglotFile]
+@="Polyglot源代码文件"
+"EditFlags"=dword:00000000
+
+[HKEY_CLASSES_ROOT\PolyglotFile\DefaultIcon]
+@="%SystemRoot%\\System32\\notepad.exe,0"
+
+[HKEY_CLASSES_ROOT\PolyglotFile\shell]
+@="compile"
+
+; 编译选项
+[HKEY_CLASSES_ROOT\PolyglotFile\shell\compile]
+@="用Polyglot编译器编译"
+"Icon"="%SystemRoot%\\System32\\cmd.exe,0"
+
+[HKEY_CLASSES_ROOT\PolyglotFile\shell\compile\command]
+@="\"%~dp0文达.bat\" \"%1\""
+
+; 编辑选项
+[HKEY_CLASSES_ROOT\PolyglotFile\shell\edit]
+@="编辑"
+
+[HKEY_CLASSES_ROOT\PolyglotFile\shell\edit\command]
+@="notepad.exe \"%1\""
