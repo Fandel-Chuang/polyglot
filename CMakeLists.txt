@@ -37,6 +37,7 @@ set(SOURCES
     compiler/semantic.cpp
     compiler/ast_interpreter.cpp
     compiler/error.cpp
+    compiler/symbol_config.cpp
 )
 
 # 头文件
@@ -47,6 +48,7 @@ set(HEADERS
     compiler/semantic.h
     compiler/ast_interpreter.h
     compiler/error.h
+    compiler/symbol_config.h
 )
 
 # 创建英文可执行文件
