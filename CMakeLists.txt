@@ -35,7 +35,8 @@ set(SOURCES
     compiler/lexer.cpp
     compiler/parser.cpp
     compiler/semantic.cpp
-    compiler/codegen.cpp
+    compiler/ast_interpreter.cpp
+    compiler/error.cpp
 )
 
 # 头文件
@@ -44,13 +45,15 @@ set(HEADERS
     compiler/parser.h
     compiler/ast.h
     compiler/semantic.h
-    compiler/codegen.h
+    compiler/ast_interpreter.h
     compiler/error.h
-    compiler/package_manager.h
 )
 
-# 创建可执行文件
+# 创建英文可执行文件
 add_executable(polyglot ${SOURCES} ${HEADERS})
+
+# 创建中文可执行文件（目标名用英文，输出名用中文）
+add_executable(wenda ${SOURCES} ${HEADERS})
 
 # 设置目标属性
 set_target_properties(polyglot PROPERTIES
@@ -58,63 +61,46 @@ set_target_properties(polyglot PROPERTIES
     VERSION ${PROJECT_VERSION}
 )
 
+set_target_properties(wenda PROPERTIES
+    OUTPUT_NAME "文达"
+    VERSION ${PROJECT_VERSION}
+)
+
 # 包含目录
 target_include_directories(polyglot PRIVATE compiler)
+target_include_directories(wenda PRIVATE compiler)
 
 # 平台特定设置
 if(WIN32)
     # Windows 特定设置
-    set_target_properties(polyglot PROPERTIES
-        WIN32_EXECUTABLE FALSE  # 控制台应用程序
-    )
+    set_target_properties(polyglot PROPERTIES WIN32_EXECUTABLE FALSE)
+    set_target_properties(wenda PROPERTIES WIN32_EXECUTABLE FALSE)
 
     # 如果使用 MinGW，链接静态运行时
     if(MINGW)
         target_link_options(polyglot PRIVATE -static-libgcc -static-libstdc++)
+        target_link_options(wenda PRIVATE -static-libgcc -static-libstdc++)
     endif()
 elseif(APPLE)
     # macOS 特定设置
-    set_target_properties(polyglot PROPERTIES
-        MACOSX_BUNDLE FALSE
-    )
-elseif(UNIX)
-    # Linux 特定设置
-    # 可以在这里添加 Linux 特定的设置
+    set_target_properties(polyglot PROPERTIES MACOSX_BUNDLE FALSE)
+    set_target_properties(wenda PROPERTIES MACOSX_BUNDLE FALSE)
 endif()
 
 # 安装规则
-install(TARGETS polyglot
+install(TARGETS polyglot wenda
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
 
-# 复制测试文件
-configure_file(${CMAKE_SOURCE_DIR}/test.pg ${CMAKE_BINARY_DIR}/test.pg COPYONLY)
-
-# 创建自定义目标用于测试
+# 创建自定义目标用于测试（使用现有的测试文件）
 add_custom_target(run_test
-    COMMAND $<TARGET_FILE:polyglot> test.pg
+    COMMAND $<TARGET_FILE:polyglot> ../ai_tests/simple_test.pg
     DEPENDS polyglot
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "运行 polyglot 编译器测试"
+    COMMENT "运行 polyglot AST解释器测试"
 )
-
-# 打包设置 (CPack)
-set(CPACK_PACKAGE_NAME "polyglot")
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "polyglot 符号化编程语言编译器")
-set(CPACK_PACKAGE_VENDOR "polyglot Team")
-
-if(WIN32)
-    set(CPACK_GENERATOR "ZIP;NSIS")
-elseif(APPLE)
-    set(CPACK_GENERATOR "ZIP;DragNDrop")
-else()
-    set(CPACK_GENERATOR "TGZ;DEB;RPM")
-endif()
-
-include(CPack)
 
 # 打印配置信息
 message(STATUS "=== polyglot 编译器配置 ===")

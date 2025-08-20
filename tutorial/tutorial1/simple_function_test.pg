@@ -8,13 +8,13 @@ add(a: int, b: int) -> int {
 
 // 简单的问候函数
 greet(name: string) {
-    ? message = "Hello, " + name
+    message := "Hello, " + name
     <- message
 }
 
 // 主函数
 main() -> int {
-    ? result = add(5, 3)
-    ? greeting = greet("polyglot")
+    result := add(5, 3)
+    greeting := greet("polyglot")
     <- 0
 }

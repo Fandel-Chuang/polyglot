@@ -282,6 +282,9 @@ std::unique_ptr<Statement> Parser::parseStatement() {
               << ", 值='" << current.value << "'" << std::endl;
 
     switch (current.type) {
+        case TokenType::QUESTION: {    // ? 变量声明语句
+            return parseQuestionVariableDeclStmt();
+        }
         case TokenType::IDENTIFIER: {
             // 检查是否为变量声明 (identifier: type 或 identifier: ?)
             if ((this->current + 1) < tokens.size() && tokens[this->current + 1].type == TokenType::COLON) {
@@ -323,6 +326,27 @@ std::unique_ptr<ReturnStmt> Parser::parseReturnStmt() {
     }
 
     return returnStmt;
+}
+
+// 解析 ? variable = value 形式的变量声明
+std::unique_ptr<Statement> Parser::parseQuestionVariableDeclStmt() {
+    auto varDecl = std::make_unique<VariableDecl>();
+
+    advance(); // 跳过 ?
+
+    if (peek().type != TokenType::IDENTIFIER) {
+        throw ParserError("期望变量名", peek().line, peek().column);
+    }
+
+    varDecl->name = advance().value;
+
+    // ? variable = value 形式，没有显式类型
+    // 不设置 varDecl->type，让语义分析器推导类型
+
+    consume(TokenType::ASSIGN, "期望 '='");
+    varDecl->initializer = parseExpression();
+
+    return varDecl;
 }
 
 // 解析表达式语句

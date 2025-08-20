@@ -7,7 +7,7 @@ main() {
     ? x: float = 3.14  // 错误：重复声明
 
     // 未声明变量使用
-    ? y = unknown_var + 5  // 错误：unknown_var未声明
+    y := unknown_var + 5  // 错误：unknown_var未声明
 
     // 类型不匹配
     ? name: string = 123  // 错误：类型不匹配

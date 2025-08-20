@@ -1,6 +1,5 @@
 #include "lexer.h"
 #include "error.h"
-#include "symbol_config.h"
 #include <iostream>
 #include <cctype>
 #include <algorithm>
@@ -660,32 +659,8 @@ void Lexer::scanUnicodeSymbol() {
         // 没有找到匹配的符号，按单个UTF-8字符处理
         std::string singleChar = advanceUTF8Char();
 
-        // 使用JSON配置文件加载符号映射
-        static SymbolConfigLoader configLoader("symbol_mapping.json");
-        static bool configLoaded = false;
-
-        if (!configLoaded) {
-            if (configLoader.loadConfig()) {
-                configLoaded = true;
-            } else {
-                // 如果JSON配置加载失败，给出友好的错误提示
-                std::cerr << "⚠️  警告：无法加载symbol_mapping.json配置文件，使用默认符号映射" << std::endl;
-                configLoaded = true; // 标记为已尝试加载，避免重复尝试
-            }
-        }
-
-        // 检查是否在配置文件中定义了这个Unicode符号
-        std::string tokenTypeName = configLoader.getTokenTypeForUnicode(singleChar);
-        if (!tokenTypeName.empty()) {
-            TokenType tokenType = stringToTokenType(tokenTypeName);
-            if (tokenType != TokenType::UNKNOWN) {
-                tokens.emplace_back(tokenType, singleChar, startLine, startColumn);
-                return;
-            }
-        }
-
-        // 如果JSON配置中没有找到，抛出错误并提示用户
-        throw LexerError("未知的Unicode字符: " + singleChar + " (请在symbol_mapping.json中添加此符号的映射)", startLine, startColumn);
+        // 对于未识别的Unicode字符，抛出错误
+        throw LexerError("未知的Unicode字符: " + singleChar, startLine, startColumn);
     }
 }
 

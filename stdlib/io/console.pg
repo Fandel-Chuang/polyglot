@@ -59,29 +59,29 @@ input(prompt: string) -> string {
 
 // Type-safe input functions
 input_int() -> Option<i32> {
-    ? str = console_input()
+    str := console_input()
     <- to_int(str)
 }
 
 input_int(prompt: string) -> Option<i32> {
     console_print(prompt)
-    ? str = console_input()
+    str := console_input()
     <- to_int(str)
 }
 
 input_float() -> Option<f64> {
-    ? str = console_input()
+    str := console_input()
     <- to_float(str)
 }
 
 input_float(prompt: string) -> Option<f64> {
     console_print(prompt)
-    ? str = console_input()
+    str := console_input()
     <- to_float(str)
 }
 
 input_bool() -> Option<bool> {
-    ? str = console_input().trim().to_lowercase()
+    str := console_input().trim().to_lowercase()
     (str == "true" || str == "1" || str == "yes" || str == "y") ? {
         <- Option<bool>(true)
     } : (str == "false" || str == "0" || str == "no" || str == "n") ? {
@@ -168,8 +168,8 @@ eprintln(message: string) {
     }
 
     show(progress: f64, message: string) {
-        ? filled = (progress * _.width as f64) as i32
-        ? empty = _.width - filled
+        filled := (progress * _.width as f64) as i32
+        empty := _.width - filled
 
         console_print("\r" + message + " [")
         ^(i in 0..filled) {

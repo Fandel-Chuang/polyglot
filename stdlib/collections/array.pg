@@ -103,7 +103,7 @@
 
     remove(index: i32) -> Option<T> {
         (index >= 0 && index < _.size) ? {
-            ? removed = _.data[index]
+            removed := _.data[index]
             // Shift elements to the left
             ^(i in index.._.size - 1) {
                 _.data[i] = _.data[i + 1]
@@ -147,7 +147,7 @@
     }
 
     count(value: T) -> i32 {
-        ? count = 0
+        count := 0
         ^(i in 0.._.size) {
             (_.data[i] == value) ? {
                 count += 1
@@ -158,7 +158,7 @@
 
     // Functional operations
     map<U>(func: fn(T) -> U) -> Array<U> {
-        ? result = Array<U>(_.size)
+        result := Array<U>(_.size)
         ^(i in 0.._.size) {
             result.push(func(_.data[i]))
         }
@@ -166,7 +166,7 @@
     }
 
     filter(predicate: fn(T) -> bool) -> Array<T> {
-        ? result = Array<T>()
+        result := Array<T>()
         ^(i in 0.._.size) {
             (predicate(_.data[i])) ? {
                 result.push(_.data[i])
@@ -176,7 +176,7 @@
     }
 
     reduce<U>(initial: U, func: fn(U, T) -> U) -> U {
-        ? accumulator = initial
+        accumulator := initial
         ^(i in 0.._.size) {
             accumulator = func(accumulator, _.data[i])
         }
@@ -205,11 +205,11 @@
     }
 
     binary_search(value: T) -> Option<i32> {
-        ? left = 0
-        ? right = _.size - 1
+        left := 0
+        right := _.size - 1
 
         ^(left <= right) {
-            ? mid = (left + right) / 2
+            mid := (left + right) / 2
             (_.data[mid] == value) ? {
                 <- Option<i32>(mid)
             } : (_.data[mid] < value) ? {
@@ -229,7 +229,7 @@
     }
 
     slice(start: i32, end: i32) -> Array<T> {
-        ? result = Array<T>()
+        result := Array<T>()
         ^(i in start..min(end, _.size)) {
             result.push(_.data[i])
         }
@@ -237,7 +237,7 @@
     }
 
     concat(other: Array<T>) -> Array<T> {
-        ? result = Array<T>(_.size + other.size)
+        result := Array<T>(_.size + other.size)
         ^(i in 0.._.size) {
             result.push(_.data[i])
         }
@@ -253,7 +253,7 @@
             <- "[]"
         }
 
-        ? result = "["
+        result := "["
         ^(i in 0.._.size) {
             result += to_string(_.data[i])
             (i < _.size - 1) ? {
@@ -267,8 +267,8 @@
     // Private helper methods
     _ensure_capacity(required: i32) {
         (required > _.capacity) ? {
-            ? new_capacity = max(_.capacity * 2, required)
-            ? new_data = allocate<T>(new_capacity)
+            new_capacity := max(_.capacity * 2, required)
+            new_data := allocate<T>(new_capacity)
 
             ^(i in 0.._.size) {
                 new_data[i] = _.data[i]
@@ -285,15 +285,15 @@
 
     _quick_sort(low: i32, high: i32, comparator: fn(T, T) -> i32) {
         (low < high) ? {
-            ? pivot = _partition(low, high, comparator)
+            pivot := _partition(low, high, comparator)
             _quick_sort(low, pivot - 1, comparator)
             _quick_sort(pivot + 1, high, comparator)
         }
     }
 
     _partition(low: i32, high: i32, comparator: fn(T, T) -> i32) -> i32 {
-        ? pivot = _.data[high]
-        ? i = low - 1
+        pivot := _.data[high]
+        i := low - 1
 
         ^(j in low..high) {
             (comparator(_.data[j], pivot) <= 0) ? {
@@ -322,7 +322,7 @@
 
     next() -> Option<T> {
         (_.has_next()) ? {
-            ? value = _.array.data[_.index]
+            value := _.array.data[_.index]
             _.index += 1
             <- Option<T>(value)
         } : {
@@ -351,9 +351,9 @@
     }
 
     put(key: K, value: V) {
-        ? hash = _hash(key)
-        ? bucket_index = hash % _.buckets.length()
-        ? bucket = _.buckets.at(bucket_index)
+        hash := _hash(key)
+        bucket_index := hash % _.buckets.length()
+        bucket := _.buckets.at(bucket_index)
 
         // Check if key already exists
         ^(i in 0..bucket.length()) {
@@ -374,9 +374,9 @@
     }
 
     get(key: K) -> Option<V> {
-        ? hash = _hash(key)
-        ? bucket_index = hash % _.buckets.length()
-        ? bucket = _.buckets.at(bucket_index)
+        hash := _hash(key)
+        bucket_index := hash % _.buckets.length()
+        bucket := _.buckets.at(bucket_index)
 
         ^(i in 0..bucket.length()) {
             (bucket.at(i).0 == key) ? {
@@ -387,13 +387,13 @@
     }
 
     remove(key: K) -> Option<V> {
-        ? hash = _hash(key)
-        ? bucket_index = hash % _.buckets.length()
-        ? bucket = _.buckets.at(bucket_index)
+        hash := _hash(key)
+        bucket_index := hash % _.buckets.length()
+        bucket := _.buckets.at(bucket_index)
 
         ^(i in 0..bucket.length()) {
             (bucket.at(i).0 == key) ? {
-                ? removed = bucket.at(i).1
+                removed := bucket.at(i).1
                 bucket.remove(i)
                 _.size -= 1
                 <- Option<V>(removed)
@@ -407,7 +407,7 @@
     }
 
     keys() -> Array<K> {
-        ? result = Array<K>()
+        result := Array<K>()
         ^(bucket in _.buckets) {
             ^(pair in bucket) {
                 result.push(pair.0)
@@ -417,7 +417,7 @@
     }
 
     values() -> Array<V> {
-        ? result = Array<V>()
+        result := Array<V>()
         ^(bucket in _.buckets) {
             ^(pair in bucket) {
                 result.push(pair.1)
@@ -447,7 +447,7 @@
     }
 
     _resize() {
-        ? old_buckets = _.buckets
+        old_buckets := _.buckets
         _.buckets = Array<Array<(K, V)>>(old_buckets.length() * 2)
         ^(i in 0.._.buckets.length()) {
             _.buckets.push(Array<(K, V)>())

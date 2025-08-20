@@ -23,9 +23,9 @@
 }
 
 main() {
-    ? player = Player("Alice", 100.0)
-    ? info = player.get_info()
-    ? damage = 25.0
+    player := Player("Alice", 100.0)
+    info := player.get_info()
+    damage := 25.0
 
     player.health = player.health - damage
 

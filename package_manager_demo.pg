@@ -29,10 +29,10 @@ main() {
 test_local_libraries() {
     println("\n📚 测试本地标准库...")
 
-    ? numbers = [1, 2, 3, 4, 5]
+    numbers := [1, 2, 3, 4, 5]
     println("数组: " + to_string(numbers))
 
-    ? sum = 0
+    sum := 0
     ^(num in numbers) {
         sum += num
     }
@@ -47,16 +47,16 @@ test_remote_dependencies() {
     // 这里仅作为语法演示
 
     println("📡 模拟HTTP客户端...")
-    // ? client = HttpClient()
-    // ? response = client.get("https://api.example.com")
+    // client := HttpClient()
+    // response := client.get("https://api.example.com")
     println("✅ HTTP客户端库加载成功（模拟）")
 
     println("📝 模拟JSON解析器...")
-    // ? json_data = JsonParser::parse("{\"test\": \"value\"}")
+    // json_data := JsonParser::parse("{\"test\": \"value\"}")
     println("✅ JSON解析器库加载成功（模拟）")
 
     println("🧮 模拟数学工具库...")
-    // ? result = MathUtils::calculate_fibonacci(10)
+    // result := MathUtils::calculate_fibonacci(10)
     println("✅ 数学工具库加载成功（模拟）")
 }
 
@@ -64,20 +64,20 @@ test_remote_dependencies() {
 test_math_calculations() {
     println("\n🧮 测试数学计算...")
 
-    ? pi = 3.14159
-    ? radius = 5.0
-    ? area = pi * radius * radius
+    pi := 3.14159
+    radius := 5.0
+    area := pi * radius * radius
 
     println("圆周率: " + to_string(pi))
     println("半径: " + to_string(radius))
     println("面积: " + to_string(area))
 
     // 测试更复杂的计算
-    ? base = 2.0
-    ? exponent = 10
-    ? power_result = 1.0
+    base := 2.0
+    exponent := 10
+    power_result := 1.0
 
-    ? i = 0
+    i := 0
     ^(i < exponent) {
         power_result *= base
         i += 1
@@ -91,7 +91,7 @@ handle_dependency_errors() {
     println("\n⚠️ 依赖错误处理演示...")
 
     // 模拟依赖不可用的情况
-    ? dependency_available = false
+    dependency_available := false
 
     (dependency_available) ? {
         println("✅ 使用高级第三方功能")

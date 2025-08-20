@@ -8,7 +8,7 @@
 }
 
 main() {
-    ? player_name = "Alice"
-    ? health_value = 100.0
+    player_name := "Alice"
+    health_value := 100.0
     <- 0
 }

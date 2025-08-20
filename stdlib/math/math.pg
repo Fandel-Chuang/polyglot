@@ -199,7 +199,7 @@ is_odd(x: i32) -> bool {
 
 gcd(a: i32, b: i32) -> i32 {
     ^(b != 0) {
-        ? temp = b
+        temp := b
         b = a % b
         a = temp
     }
@@ -222,10 +222,10 @@ fibonacci(n: i32) -> i32 {
     (n <= 1) ? {
         <- n
     } : {
-        ? a = 0
-        ? b = 1
+        a := 0
+        b := 1
         ^(i in 2..n + 1) {
-            ? temp = a + b
+            temp := a + b
             a = b
             b = temp
         }
@@ -244,7 +244,7 @@ is_prime(n: i32) -> bool {
         <- false
     }
 
-    ? i = 3
+    i := 3
     ^(i * i <= n) {
         (n % i == 0) ? {
             <- false
@@ -278,7 +278,7 @@ is_prime(n: i32) -> bool {
     }
 
     normalize() -> Vector2 {
-        ? len = _.length()
+        len := _.length()
         (len > 0.0) ? {
             <- Vector2(_.x / len, _.y / len)
         } : {
@@ -295,8 +295,8 @@ is_prime(n: i32) -> bool {
     }
 
     distance_to(other: Vector2) -> f64 {
-        ? dx = _.x - other.x
-        ? dy = _.y - other.y
+        dx := _.x - other.x
+        dy := _.y - other.y
         <- sqrt(dx * dx + dy * dy)
     }
 
@@ -305,8 +305,8 @@ is_prime(n: i32) -> bool {
     }
 
     rotate(angle: f64) -> Vector2 {
-        ? cos_a = cos(angle)
-        ? sin_a = sin(angle)
+        cos_a := cos(angle)
+        sin_a := sin(angle)
         <- Vector2(
             _.x * cos_a - _.y * sin_a,
             _.x * sin_a + _.y * cos_a
@@ -372,7 +372,7 @@ is_prime(n: i32) -> bool {
     }
 
     normalize() -> Vector3 {
-        ? len = _.length()
+        len := _.length()
         (len > 0.0) ? {
             <- Vector3(_.x / len, _.y / len, _.z / len)
         } : {
@@ -393,9 +393,9 @@ is_prime(n: i32) -> bool {
     }
 
     distance_to(other: Vector3) -> f64 {
-        ? dx = _.x - other.x
-        ? dy = _.y - other.y
-        ? dz = _.z - other.z
+        dx := _.x - other.x
+        dy := _.y - other.y
+        dz := _.z - other.z
         <- sqrt(dx * dx + dy * dy + dz * dz)
     }
 
@@ -477,7 +477,7 @@ is_prime(n: i32) -> bool {
 
     shuffle<T>(array: Array<T>) {
         ^(i in array.length() - 1..0) {
-            ? j = _.next_int(i + 1)
+            j := _.next_int(i + 1)
             swap(array.at(i), array.at(j))
         }
     }
@@ -492,7 +492,7 @@ is_prime(n: i32) -> bool {
 }
 
 // Global random instance
-? global_random = Random()
+global_random := Random()
 
 random_int() -> i32 {
     <- global_random.next_int()
@@ -533,6 +533,6 @@ lerp(a: i32, b: i32, t: f64) -> i32 {
 
 // Smoothstep function for smooth interpolation
 smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
-    ? t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+    t := clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
     <- t * t * (3.0 - 2.0 * t)
 }

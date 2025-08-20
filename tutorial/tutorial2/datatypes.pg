@@ -101,9 +101,9 @@ main() {
     >>("生产环境: " + IS_PRODUCTION)
 
     // 使用常量计算
-    ? radius = 10.0
-    ? circle_area = PI * radius * radius
-    ? circle_circumference = 2 * PI * radius
+    radius := 10.0
+    circle_area := PI * radius * radius
+    circle_circumference := 2 * PI * radius
 
     >>("半径: " + radius)
     >>("圆的面积: " + circle_area)
@@ -111,10 +111,10 @@ main() {
 
     // 8. 类型转换示例
     >>("\n8. 类型转换:")
-    ? number_str = "123"
-    ? number_val = to_number(number_str)
-    ? text_from_num = to_string(456)
-    ? bool_from_str = to_bool("true")
+    number_str := "123"
+    number_val := to_number(number_str)
+    text_from_num := to_string(456)
+    bool_from_str := to_bool("true")
 
     >>("字符串 '123' 转数字: " + number_val)
     >>("数字 456 转字符串: '" + text_from_num + "'")

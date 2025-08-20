@@ -27,6 +27,7 @@ private:
     // 解析各种语句类型
     std::unique_ptr<Statement> parseStatement();
     std::unique_ptr<Statement> parseVariableDeclStmt();
+    std::unique_ptr<Statement> parseQuestionVariableDeclStmt();
     std::unique_ptr<ReturnStmt> parseReturnStmt();
     std::unique_ptr<ExpressionStmt> parseExpressionStmt();
 

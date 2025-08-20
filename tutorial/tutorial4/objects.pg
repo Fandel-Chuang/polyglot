@@ -7,13 +7,13 @@ main() {
 
     // 1. 创建和使用基本对象
     >>("\n1. 基本对象操作:")
-    ? p1 = Point(3.0, 4.0)
-    ? p2 = Point(0.0, 0.0)
+    p1 := Point(3.0, 4.0)
+    p2 := Point(0.0, 0.0)
 
     >>("点 p1: (" + p1.x + ", " + p1.y + ")")
     >>("点 p2: (" + p2.x + ", " + p2.y + ")")
 
-    ? distance = p1.distance_to(p2)
+    distance := p1.distance_to(p2)
     >>("p1 到 p2 的距离: " + distance)
 
     // 移动点
@@ -22,7 +22,7 @@ main() {
 
     // 2. 创建复杂对象
     >>("\n2. 复杂对象 - 圆形:")
-    ? circle = Circle(Point(0.0, 0.0), 5.0)
+    circle := Circle(Point(0.0, 0.0), 5.0)
 
     >>("圆心: (" + circle.center.x + ", " + circle.center.y + ")")
     >>("半径: " + circle.radius)
@@ -30,22 +30,22 @@ main() {
     >>("圆的周长: " + circle.circumference())
 
     // 检查点是否在圆内
-    ? test_point = Point(3.0, 4.0)
-    ? is_inside = circle.contains_point(test_point)
+    test_point := Point(3.0, 4.0)
+    is_inside := circle.contains_point(test_point)
     >>("点 (" + test_point.x + ", " + test_point.y + ") 在圆内: " + is_inside)
 
     // 3. 使用接口和多态
     >>("\n3. 接口和多态:")
-    ? shapes = []
+    shapes := []
     shapes.push(circle)
     shapes.push(Rectangle(Point(-2.0, -1.0), 4.0, 2.0))
     shapes.push(Triangle(Point(0.0, 0.0), Point(3.0, 0.0), Point(1.5, 3.0)))
 
-    ? total_area = 0.0
-    ? i = 0
+    total_area := 0.0
+    i := 0
     ^(i < len(shapes)) {
-        ? shape = shapes[i]
-        ? shape_area = shape.area()
+        shape := shapes[i]
+        shape_area := shape.area()
         total_area = total_area + shape_area
 
         >>("形状 " + (i + 1) + " 面积: " + shape_area)
@@ -55,9 +55,9 @@ main() {
 
     // 4. 枚举类型使用
     >>("\n4. 枚举类型:")
-    ? red_color = Color::Red
-    ? blue_color = Color::Blue
-    ? custom_color = Color::RGB(255, 128, 0)
+    red_color := Color::Red
+    blue_color := Color::Blue
+    custom_color := Color::RGB(255, 128, 0)
 
     >>("红色: " + color_to_string(red_color))
     >>("蓝色: " + color_to_string(blue_color))
@@ -65,14 +65,14 @@ main() {
 
     // 5. 动物继承示例
     >>("\n5. 继承和多态:")
-    ? animals = []
+    animals := []
     animals.push(Dog("旺财", 3))
     animals.push(Cat("小咪", 2))
     animals.push(Bird("小黄", 1))
 
-    ? j = 0
+    j := 0
     ^(j < len(animals)) {
-        ? animal = animals[j]
+        animal := animals[j]
 
         >>("动物: " + animal.get_name() + ", 年龄: " + animal.get_age())
         animal.make_sound()
@@ -88,7 +88,7 @@ main() {
 
     // 6. 组合模式示例
     >>("\n6. 对象组合:")
-    ? team = Team("开发团队")
+    team := Team("开发团队")
     team.add_member(Person("Alice", "程序员", 5))
     team.add_member(Person("Bob", "设计师", 3))
     team.add_member(Person("Charlie", "测试员", 2))
@@ -97,7 +97,7 @@ main() {
     >>("成员数量: " + team.member_count())
     team.show_members()
 
-    ? avg_experience = team.average_experience()
+    avg_experience := team.average_experience()
     >>("平均经验: " + avg_experience + " 年")
 
     <- 0
@@ -122,8 +122,8 @@ main() {
 
     // 计算到另一点的距离
     distance_to(other: Point) -> F {
-        ? dx = self.x - other.x
-        ? dy = self.y - other.y
+        dx := self.x - other.x
+        dy := self.y - other.y
         <- sqrt(dx * dx + dy * dy)
     }
 
@@ -176,7 +176,7 @@ main() {
     }
 
     contains_point(point: Point) -> b {
-        ? distance = self.center.distance_to(point)
+        distance := self.center.distance_to(point)
         <- distance <= self.radius
     }
 }
@@ -206,12 +206,12 @@ main() {
     }
 
     contains_point(point: Point) -> b {
-        ? x = point.x
-        ? y = point.y
-        ? left = self.top_left.x
-        ? top = self.top_left.y
-        ? right = left + self.width
-        ? bottom = top + self.height
+        x := point.x
+        y := point.y
+        left := self.top_left.x
+        top := self.top_left.y
+        right := left + self.width
+        bottom := top + self.height
 
         <- (x >= left && x <= right && y >= top && y <= bottom)
     }
@@ -231,18 +231,18 @@ main() {
 
     area() -> F {
         // 使用海伦公式计算面积
-        ? side_a = self.b.distance_to(self.c)
-        ? side_b = self.a.distance_to(self.c)
-        ? side_c = self.a.distance_to(self.b)
-        ? s = (side_a + side_b + side_c) / 2.0
+        side_a := self.b.distance_to(self.c)
+        side_b := self.a.distance_to(self.c)
+        side_c := self.a.distance_to(self.b)
+        s := (side_a + side_b + side_c) / 2.0
 
         <- sqrt(s * (s - side_a) * (s - side_b) * (s - side_c))
     }
 
     perimeter() -> F {
-        ? side_a = self.b.distance_to(self.c)
-        ? side_b = self.a.distance_to(self.c)
-        ? side_c = self.a.distance_to(self.b)
+        side_a := self.b.distance_to(self.c)
+        side_b := self.a.distance_to(self.c)
+        side_c := self.a.distance_to(self.b)
         <- side_a + side_b + side_c
     }
 
@@ -423,9 +423,9 @@ color_to_string(color: Color) -> s {
     }
 
     show_members() {
-        ? i = 0
+        i := 0
         ^(i < len(self.members)) {
-            ? member = self.members[i]
+            member := self.members[i]
             >>("  - " + member.get_info())
             i = i + 1
         }
@@ -436,8 +436,8 @@ color_to_string(color: Color) -> s {
             <- 0.0
         }
 
-        ? total = 0
-        ? i = 0
+        total := 0
+        i := 0
         ^(i < len(self.members)) {
             total += self.members[i].experience
             i = i + 1

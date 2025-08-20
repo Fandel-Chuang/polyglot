@@ -7,5 +7,5 @@
     // 故意缺少逗号
 
 main() {
-    ? player = Player("Test")  // 参数不匹配
+    player := Player("Test")  // 参数不匹配
     <- 0

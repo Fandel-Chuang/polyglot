@@ -2,9 +2,8 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantic.h"
-#include "codegen.h"
 #include "error.h"
-#include "package_manager.h"
+#include "ast_interpreter.h"
 
 // 然后包含标准库
 #include <iostream>
@@ -22,6 +21,41 @@
 #else
 #include <clocale>
 #endif
+
+// 简化的包管理器类（用于AST解释器模式）
+namespace polyglot {
+    class IntegratedPackageManager {
+    private:
+        std::string project_root;
+
+    public:
+        IntegratedPackageManager(const std::string& root) : project_root(root) {}
+
+        bool resolveDependencies(const std::vector<std::string>& source_files) {
+            return true; // AST模式不需要复杂的依赖解析
+        }
+
+        bool resolveDependencies(const std::string& source_code) {
+            return true; // AST模式不需要复杂的依赖解析
+        }
+
+        void updateDependencies() {
+            std::cout << "📦 AST模式：跳过依赖更新" << std::endl;
+        }
+
+        void cleanCache() {
+            std::cout << "🧹 AST模式：无需清理缓存" << std::endl;
+        }
+
+        void printDependencyInfo() {
+            std::cout << "📋 AST模式：直接解释执行，无外部依赖" << std::endl;
+        }
+
+        std::vector<std::string> getIncludePaths() {
+            return {}; // AST模式不需要包含路径
+        }
+    };
+}
 
 void setupConsoleUTF8() {
 #ifdef _WIN32
@@ -69,10 +103,9 @@ std::string readFile(const std::string& filename) {
     return content;
 }
 
-// 编译生成的C++代码
-bool compileCppCode(const std::string& cppCode, const std::string& originalFilename) {
+// 构建并运行生成的C++代码
+bool runGeneratedCppCode(const std::string& cppCode, const std::string& baseName) {
     // 生成输出文件名
-    std::string baseName = originalFilename.substr(0, originalFilename.find_last_of('.'));
     std::string cppFilename = baseName + "_generated.cpp";
     std::string exeFilename = baseName;
 
@@ -156,9 +189,8 @@ bool compileCppCode(const std::string& cppCode, const std::string& originalFilen
 
 // 带选项的编译函数
 void compileWithOptions(const std::string& sourceCode, const std::string& filename,
-                       bool updateDeps, bool noDeps, bool verbose,
-                       polyglot::IntegratedPackageManager& packageManager) {
-    std::cout << "🚀 开始编译 polyglot 程序: " << filename << std::endl;
+                       bool updateDeps, bool noDeps, bool verbose, polyglot::IntegratedPackageManager& packageManager) {
+    std::cout << "🚀 开始解释执行 polyglot 程序: " << filename << std::endl;
 
     try {
         // 0. 包管理和依赖解析
@@ -225,30 +257,41 @@ void compileWithOptions(const std::string& sourceCode, const std::string& filena
         }
         std::cout << "   ✅ 语义检查通过" << std::endl;
 
-        // 4. 代码生成 (Code Generation)
-        std::cout << "⚙️ 步骤 4: 代码生成..." << std::endl;
-        CodeGenerator codeGenerator;
-        std::string output = codeGenerator.generate(ast);
-        std::cout << "   ✅ 代码生成完成" << std::endl;
-
+        // 4. AST可视化（如果需要）
         if (verbose) {
-            std::cout << "\n📋 生成的C++代码:" << std::endl;
-            std::cout << "----------------------------------------" << std::endl;
-            std::cout << output << std::endl;
-            std::cout << "----------------------------------------" << std::endl;
+            std::cout << "🌳 步骤 4: AST可视化..." << std::endl;
+            polyglot::ASTVisualizer::printAST(ast.get());
         }
 
-        // 5-7. 编译并运行C++代码
-        bool success = compileCppCode(output, filename);
+        // 5. AST分析
+        std::cout << "🔍 步骤 5: AST分析..." << std::endl;
+        auto analysis = polyglot::ASTAnalyzer::analyze(dynamic_cast<Program*>(ast.get()));
+        std::cout << "   ✅ AST分析完成" << std::endl;
 
-        if (success) {
-            std::cout << "\n🎉 polyglot编译完整流程成功！" << std::endl;
-        } else {
-            std::cout << "\n⚠️  polyglot转换成功，但C++编译失败" << std::endl;
+        // 6. AST解释执行
+        std::cout << "🚀 步骤 7: AST解释执行..." << std::endl;
+        polyglot::ASTInterpreter interpreter;
+        auto result = interpreter.interpret(ast);
+
+        std::cout << "\n🎉 polyglot程序解释执行完成！" << std::endl;
+        std::cout << "   📊 程序统计:" << std::endl;
+        std::cout << "     - 总节点数: " << analysis.totalNodes << std::endl;
+        std::cout << "     - 函数数量: " << analysis.functionCount << std::endl;
+        std::cout << "     - 变量数量: " << analysis.variableCount << std::endl;
+
+        // 可选：导出AST到文件
+        if (verbose) {
+            std::string baseName = filename.substr(0, filename.find_last_of('.'));
+            polyglot::ASTVisualizer::exportToJSON(ast.get(), baseName + "_ast.json");
+            polyglot::ASTVisualizer::exportToDot(ast.get(), baseName + "_ast.dot");
         }
+
+        // 上面的代码已改为AST解释执行
+
+        return;
 
     } catch (const CompilerError& e) {
-        std::cerr << "编译错误: " << e.what() << std::endl;
+        std::cerr << "解释执行错误: " << e.what() << std::endl;
         exit(1);
     }
 }
@@ -355,21 +398,20 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // 如果没有源文件，提示错误
         if (sourceFile.empty()) {
-            std::cerr << "❌ 请指定要编译的源文件" << std::endl;
+            std::cerr << "❌ 请指定要解释执行的源文件" << std::endl;
             printUsage();
             return 1;
         }
 
-        // 读取源代码并编译
+        // 读取源代码并解释执行
         std::string sourceCode = readFile(sourceFile);
 
-        // 修改compile函数调用，传递额外参数
+        // 使用AST解释器模式进行编译执行
         compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
 
     } catch (const CompilerError& e) {
-        std::cerr << "错误: " << e.what() << std::endl;
+        std::cerr << "解释执行错误: " << e.what() << std::endl;
         return 1;
     } catch (const std::exception& e) {
         std::cerr << "系统错误: " << e.what() << std::endl;

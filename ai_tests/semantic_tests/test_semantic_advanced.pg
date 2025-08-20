@@ -19,9 +19,9 @@
 }
 
 main() {
-    ? player = Player("Alice", 100)
-    ? hp = player.getHealth()
-    ? badVar = undeclaredFunction()  // 错误：未声明的函数
+    player := Player("Alice", 100)
+    hp := player.getHealth()
+    badVar := undeclaredFunction()  // 错误：未声明的函数
 
     <- 0
 }
