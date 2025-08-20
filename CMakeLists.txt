@@ -87,8 +87,17 @@ elseif(APPLE)
     set_target_properties(wenda PROPERTIES MACOSX_BUNDLE FALSE)
 endif()
 
+# CLI 工具
+add_executable(wenda_cli tools/cli/main.cpp)
+set_target_properties(wenda_cli PROPERTIES
+    OUTPUT_NAME "wenda"
+    VERSION ${PROJECT_VERSION}
+)
+# 复用编译器包含路径，后续如有公共头可调整为单独的 include 目录
+target_include_directories(wenda_cli PRIVATE compiler)
+
 # 安装规则
-install(TARGETS polyglot wenda
+install(TARGETS polyglot wenda wenda_cli
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
