@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build
+
+      - name: Configure (CMake)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Run CLI tests (wenda test)
+        run: ./build/bin/wenda test
+
+      - name: Upload golden report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-report-ubuntu
+          path: tests/golden/report/**
+          if-no-files-found: ignore
+          retention-days: 7
+
+  build-test-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure (CMake)
+        shell: pwsh
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -A x64
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --config RelWithDebInfo
+
+      - name: Run CLI tests (wenda test)
+        shell: pwsh
+        run: .\build\bin\wenda.exe test
+
+      - name: Upload golden report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-report-windows
+          path: tests/golden/report/**
+          if-no-files-found: ignore
+          retention-days: 7
