@@ -10,14 +10,15 @@ on:
       - main
 
 jobs:
-  build-test-ubuntu:
+  build-test-debian:
     runs-on: ubuntu-latest
+    container: debian:bookworm-slim
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build
+        run: apt-get update && apt-get install -y cmake g++ ninja-build python3
 
       - name: Configure (CMake)
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -32,7 +33,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: golden-report-ubuntu
+          name: golden-report-debian
           path: tests/golden/report/**
           if-no-files-found: ignore
           retention-days: 7
