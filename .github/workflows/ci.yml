@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-test-debian:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # GitHub 托管运行器；通过 container 使用 Debian 环境
     container: debian:bookworm-slim
     steps:
       - name: Checkout

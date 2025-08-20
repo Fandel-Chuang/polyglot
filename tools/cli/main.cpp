@@ -113,9 +113,10 @@ static int cmd_run(const std::vector<std::string> &args) {
 
 static int cmd_test(const std::vector<std::string> &args) {
     (void)args;
-    // 最小实现：
-    // - 优先尝试 ctest
-    // - 若无 ctest 配置，则退化为运行 ai_tests 目录的示例（占位）
+    // 测试优先级：
+    // 1) 金样测试驱动（tests/golden/run_golden.py）
+    // 2) ctest
+    // 3) 回退样例（ai_tests/examples/test_builtin_print.pg）
 
     if (!fs::exists("build")) {
         std::cout << "[CLI] 未发现构建目录，先执行构建…" << std::endl;
@@ -123,12 +124,21 @@ static int cmd_test(const std::vector<std::string> &args) {
         if (rc != 0) return rc;
     }
 
-    // 尝试 ctest
+    // 1) 金样测试（若存在驱动脚本）
+    if (fs::exists("tests/golden/run_golden.py")) {
+        int grc = run_cmd("python3 tests/golden/run_golden.py");
+        // 0 通过；2 代表未发现用例，则继续尝试其他；其他为失败
+        if (grc == 0) return 0;
+        if (grc != 2) return grc;
+        std::cout << "[CLI] 金样测试无用例，继续尝试 ctest…" << std::endl;
+    }
+
+    // 2) 尝试 ctest
     int rc = run_cmd("ctest --test-dir build --output-on-failure");
     if (rc == 0) return 0;
 
     std::cout << "[CLI] 未配置 ctest，回退到示例测试 (占位)…" << std::endl;
-    // 占位：执行内置样例（后续用 golden 测试框架替代）
+    // 3) 占位：执行内置样例（后续用 golden 测试框架替代）
     if (fs::exists("ai_tests/examples/test_builtin_print.pg")) {
         rc = cmd_run({"--file", "ai_tests/examples/test_builtin_print.pg"});
     }
