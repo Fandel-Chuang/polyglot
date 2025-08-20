@@ -4,6 +4,7 @@
 #include "semantic.h"
 #include "error.h"
 #include "ast_interpreter.h"
+#include "symbol_config.h"
 
 // 然后包含标准库
 #include <iostream>
@@ -12,6 +13,8 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
+#include <unordered_map>
+#include <algorithm>
 
 // 最后包含系统特定头文件
 #ifdef _WIN32
@@ -89,6 +92,43 @@ void printUsage() {
 }
 
 std::string readFile(const std::string& filename) {
+#ifdef _WIN32
+    // 使用宽字符接口读取UTF-8路径的文件
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, filename.c_str(), -1, nullptr, 0);
+    if (wlen <= 0) {
+        throw CompilerError("路径转码失败: " + filename);
+    }
+    std::wstring wpath;
+    wpath.resize(wlen - 1);
+    MultiByteToWideChar(CP_UTF8, 0, filename.c_str(), -1, &wpath[0], wlen);
+
+    FILE* fp = _wfopen(wpath.c_str(), L"rb");
+    if (!fp) {
+        throw CompilerError("无法打开文件: " + filename);
+    }
+    std::string content;
+    char buf[4096];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), fp)) > 0) {
+        content.append(buf, n);
+    }
+    fclose(fp);
+    // 规范换行到\n
+    std::string normalized;
+    normalized.reserve(content.size());
+    for (size_t i = 0; i < content.size(); ++i) {
+        if (content[i] == '\r') {
+            if (i + 1 < content.size() && content[i + 1] == '\n') {
+                // skip, handled by next char
+            } else {
+                normalized.push_back('\n');
+            }
+        } else {
+            normalized.push_back(content[i]);
+        }
+    }
+    return normalized;
+#else
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw CompilerError("无法打开文件: " + filename);
@@ -101,6 +141,109 @@ std::string readFile(const std::string& filename) {
     }
 
     return content;
+#endif
+}
+
+// 判断文件名（不含扩展名）是否纯英文（ASCII 字母/数字/下划线/连字符）
+bool isEnglishFilename(const std::string& filepath) {
+    // 避免 Windows 上 std::filesystem 对中文路径的转换问题，这里用字符串解析
+    size_t pos = filepath.find_last_of("/\\");
+    std::string name = (pos == std::string::npos) ? filepath : filepath.substr(pos + 1);
+    size_t dot = name.find_last_of('.');
+    std::string stem = (dot == std::string::npos) ? name : name.substr(0, dot);
+    if (stem.empty()) return true;
+    for (unsigned char ch : stem) {
+        if (ch > 127) return false; // 非 ASCII 直接判定为非英文
+        if (!(std::isalnum(ch) || ch == '_' || ch == '-')) return false;
+    }
+    return true;
+}
+
+// 简单解析 JSON，提取 string_delimiters.double_quote 列表（不依赖第三方库）
+static std::vector<std::string> parseDoubleQuoteVariants(const std::string& json) {
+    std::vector<std::string> variants;
+    const std::string key = "\"double_quote\"";
+    size_t pos = json.find(key);
+    if (pos == std::string::npos) return variants;
+    size_t lb = json.find('[', pos);
+    size_t rb = json.find(']', lb);
+    if (lb == std::string::npos || rb == std::string::npos) return variants;
+    std::string arr = json.substr(lb + 1, rb - lb - 1);
+    size_t cur = 0;
+    while (true) {
+        size_t q1 = arr.find('"', cur);
+        if (q1 == std::string::npos) break;
+        size_t q2 = arr.find('"', q1 + 1);
+        if (q2 == std::string::npos) break;
+        variants.push_back(arr.substr(q1 + 1, q2 - q1 - 1));
+        cur = q2 + 1;
+    }
+    return variants;
+}
+
+// 将源码中的非英文符号替换为 ASCII 规范符号（依据 symbol_mapping.json 和类型同类映射）
+std::string normalizeSourceBySymbols(const std::string& source, const std::string& jsonPath) {
+    std::string normalized = source;
+
+    // 1) 加载 JSON 配置
+    SymbolConfigLoader loader(jsonPath);
+    loader.loadConfig();
+    const auto& allMap = loader.getAllSymbolTokenTypes();
+
+    // 2) 为每个 TokenType 选取一个 ASCII 代表符号
+    std::unordered_map<int, std::string> asciiCanonical;
+    for (const auto& kv : allMap) {
+        const std::string& sym = kv.first;
+        auto tt = kv.second;
+        bool isAscii = std::all_of(sym.begin(), sym.end(), [](unsigned char c){ return c <= 127; });
+        if (isAscii) {
+            int key = static_cast<int>(tt);
+            if (!asciiCanonical.count(key)) asciiCanonical[key] = sym;
+        }
+    }
+
+    // 3) 构造替换表：将所有非 ASCII 的同类符号替换为 ASCII 代表
+    std::vector<std::pair<std::string,std::string>> replaces;
+    for (const auto& kv : allMap) {
+        const std::string& sym = kv.first;
+        auto tt = kv.second;
+        bool isAscii = std::all_of(sym.begin(), sym.end(), [](unsigned char c){ return c <= 127; });
+        if (!isAscii) {
+            int key = static_cast<int>(tt);
+            auto it = asciiCanonical.find(key);
+            if (it != asciiCanonical.end() && it->second != sym) {
+                replaces.emplace_back(sym, it->second);
+            }
+        }
+    }
+
+    // 4) 单独处理字符串引号：将中文书名号 “ ” 等替换为 ASCII 双引号
+    try {
+        std::string json = readFile(jsonPath);
+        auto dq = parseDoubleQuoteVariants(json);
+        if (!dq.empty()) {
+            std::string asciiQ = dq.front();
+            for (const auto& v : dq) {
+                if (v != asciiQ) replaces.emplace_back(v, asciiQ);
+            }
+        }
+    } catch (...) {
+        // 读取失败忽略，继续用默认映射
+    }
+
+    // 5) 执行替换（从长到短，避免前后覆盖）
+    std::sort(replaces.begin(), replaces.end(), [](const auto& a, const auto& b){ return a.first.size() > b.first.size(); });
+    for (const auto& rp : replaces) {
+        const std::string& from = rp.first;
+        const std::string& to   = rp.second;
+        size_t pos = 0;
+        while ((pos = normalized.find(from, pos)) != std::string::npos) {
+            normalized.replace(pos, from.size(), to);
+            pos += to.size();
+        }
+    }
+
+    return normalized;
 }
 
 // 构建并运行生成的C++代码
@@ -298,11 +441,8 @@ void compileWithOptions(const std::string& sourceCode, const std::string& filena
 
 // 简化的编译函数（向后兼容）
 void compile(const std::string& sourceCode, const std::string& filename) {
-    // 获取项目根目录并初始化包管理器
-    std::string project_root = std::filesystem::current_path().string();
-    if (std::filesystem::path(filename).is_absolute()) {
-        project_root = std::filesystem::path(filename).parent_path().string();
-    }
+    // 简化：避免对中文路径做 std::filesystem 处理
+    std::string project_root = ".";
 
     polyglot::IntegratedPackageManager packageManager(project_root);
 
@@ -364,11 +504,8 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        // 获取项目根目录
-        std::string project_root = std::filesystem::current_path().string();
-        if (!sourceFile.empty() && std::filesystem::path(sourceFile).is_absolute()) {
-            project_root = std::filesystem::path(sourceFile).parent_path().string();
-        }
+        // 获取项目根目录（简化避免中文路径导致的转换异常）
+        std::string project_root = ".";
 
         // 初始化包管理器
         polyglot::IntegratedPackageManager packageManager(project_root);
@@ -404,8 +541,23 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        // 读取源代码并解释执行
+        // 读取源代码
         std::string sourceCode = readFile(sourceFile);
+
+        // 语种检测：英文文件名 -> 使用默认符号；非英文文件名 -> 加载 JSON 并进行源码规范化
+        if (!isEnglishFilename(sourceFile)) {
+            std::cout << "🌐 检测到非英文文件名，按本地化符号配置进行规范化处理..." << std::endl;
+            // 1) 预处理：将源代码中的本地化符号规范化为ASCII（避免在编译器内部处理全角）
+            sourceCode = normalizeSourceBySymbols(sourceCode, "symbol_mapping.json");
+            // 2) 替换内存中的符号映射（如需在后续阶段基于JSON的符号集做进一步处理）
+            SymbolConfigLoader loader("symbol_mapping.json");
+            if (loader.loadConfig()) {
+                Lexer::OverrideSymbolMap(loader.getAllSymbolTokenTypes());
+            }
+        } else {
+            std::cout << "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）" << std::endl;
+            Lexer::ClearOverride();
+        }
 
         // 使用AST解释器模式进行编译执行
         compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);

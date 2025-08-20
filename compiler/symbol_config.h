@@ -43,6 +43,11 @@ public:
         return (it != symbolToTokenType.end()) ? it->second : TokenType::UNKNOWN;
     }
 
+    // 提供整张符号映射表（用于覆盖Lexer内部symbolMap）
+    const std::unordered_map<std::string, TokenType>& getAllSymbolTokenTypes() const {
+        return symbolToTokenType;
+    }
+
     bool isChineseKeyword(const std::string& word) {
         return chineseKeywords.find(word) != chineseKeywords.end();
     }
