@@ -1,0 +1,5 @@
+main() {
+    ? name: string = "Alice"
+    print(name)
+    <- 0
+}

@@ -4,13 +4,17 @@
 #include <cctype>
 #include <algorithm>
 
+// 静态成员初始化
+bool Lexer::sUseExternalMap = false;
+std::unordered_map<std::string, TokenType> Lexer::sExternalMap;
+
 Lexer::Lexer(const std::string& sourceCode)
     : source(sourceCode), current(0), line(1), column(1) {
     initSymbolMap();
 }
 
 void Lexer::initSymbolMap() {
-    // === polyglot 英文版符号语法映射 ===
+    // === polyglot 英文版符号语法映射（默认） ===
 
     // 核心符号
     symbolMap[">>"] = TokenType::IMPORT;           // 模块导入
@@ -31,50 +35,7 @@ void Lexer::initSymbolMap() {
     // 特殊引用
     symbolMap["_"] = TokenType::SELF_REF;          // 自身引用
 
-    // === 文达 中文版全角符号映射 ===
-
-    // 核心符号（全角版本）
-    symbolMap["》》"] = TokenType::IMPORT;          // 模块导入（全角）
-    symbolMap["？"] = TokenType::QUESTION;         // 变量声明（全角）
-    symbolMap["：＝"] = TokenType::CONDITIONAL_ASSIGN; // 值拷贝赋值（全角）
-    symbolMap["＜－"] = TokenType::RETURN_ARROW;    // 返回语句（全角）
-    symbolMap["＠"] = TokenType::STRUCT_DEF;       // 结构体定义（全角）
-    symbolMap["＆"] = TokenType::IMPL_DEF;         // 方法实现（全角）
-    symbolMap["－》"] = TokenType::ARROW;          // 函数返回类型（全角）
-    symbolMap["％"] = TokenType::INTERFACE;        // 接口定义（全角）
-    symbolMap["＃"] = TokenType::ENUM;             // 枚举定义（全角）
-    symbolMap["＾"] = TokenType::LOOP;             // 循环语句（全角）
-    symbolMap["＊"] = TokenType::CONSTANT;         // 常量声明（全角）
-
-    // 控制流复合符号（全角版本）
-    symbolMap["＜＜"] = TokenType::BREAK_STMT;      // 跳出循环（全角）
-
-    // 特殊引用（全角版本）
-    symbolMap["＿"] = TokenType::SELF_REF;         // 自身引用（全角）
-    symbolMap["＄"] = TokenType::VARIABLE_PREFIX;  // 变量前缀（全角）
-
-    // 全角基本符号
-    symbolMap["＝"] = TokenType::ASSIGN;           // 赋值（全角）
-    symbolMap["＋"] = TokenType::PLUS;             // 加号（全角）
-    symbolMap["－"] = TokenType::MINUS;            // 减号（全角）
-    symbolMap["＊"] = TokenType::STAR;             // 乘号（全角）
-    symbolMap["／"] = TokenType::SLASH;            // 除号（全角）
-    symbolMap["．"] = TokenType::DOT;              // 点号（全角）
-
-    // 全角复合操作符
-    symbolMap["－＝"] = TokenType::MINUS_ASSIGN;   // 减等于（全角）
-    symbolMap["＋＝"] = TokenType::PLUS_ASSIGN;    // 加等于（全角）
-    symbolMap["＜＝"] = TokenType::LESS_EQUAL;     // 小于等于（全角）
-    symbolMap["》＝"] = TokenType::GREATER_EQUAL;  // 大于等于（全角）
-    symbolMap["＝＝"] = TokenType::EQUAL;          // 等于（全角）
-    symbolMap["！＝"] = TokenType::NOT_EQUAL;      // 不等于（全角）
-    symbolMap["＆＆"] = TokenType::LOGICAL_AND;    // 逻辑与（全角）
-    symbolMap["｜｜"] = TokenType::LOGICAL_OR;     // 逻辑或（全角）
-    symbolMap["！"] = TokenType::LOGICAL_NOT;      // 逻辑非（全角）
-
     // === 基本数据类型映射 ===
-
-    // 英文版类型关键字
     symbolMap["i8"] = TokenType::TYPE_I8;
     symbolMap["i16"] = TokenType::TYPE_I16;
     symbolMap["i32"] = TokenType::TYPE_I32;
@@ -85,20 +46,14 @@ void Lexer::initSymbolMap() {
     symbolMap["string"] = TokenType::TYPE_STRING;
     symbolMap["char"] = TokenType::TYPE_CHAR;
 
-    // 中文版类型关键字
-    symbolMap["整数"] = TokenType::TYPE_I32;
-    symbolMap["长整数"] = TokenType::TYPE_I64;
-    symbolMap["浮点数"] = TokenType::TYPE_F32;
-    symbolMap["双精度浮点数"] = TokenType::TYPE_F64;
-    symbolMap["布尔"] = TokenType::TYPE_BOOL;
-    symbolMap["字符串"] = TokenType::TYPE_STRING;
-    symbolMap["字符"] = TokenType::TYPE_CHAR;
-
-    // === 布尔值映射 ===
+    // 布尔值映射
     symbolMap["true"] = TokenType::TRUE;
     symbolMap["false"] = TokenType::FALSE;
-    symbolMap["真"] = TokenType::TRUE;          // 中文布尔值
-    symbolMap["假"] = TokenType::FALSE;         // 中文布尔值
+
+    // 如果设置了外部映射，则覆盖默认映射
+    if (sUseExternalMap) {
+        symbolMap = sExternalMap;
+    }
 }
 
 char Lexer::peek() {
@@ -433,8 +388,7 @@ void Lexer::scanSymbol() {
 }
 
 std::vector<Token> Lexer::tokenize() {
-    // 首先验证符号一致性
-    validateSymbolConsistency();
+    // 跳过全角/半角混合检测（已移除该提示机制）
 
     while (current < source.length()) {
         skipWhitespace();
@@ -504,6 +458,17 @@ std::vector<Token> Lexer::tokenize() {
     tokens.emplace_back(TokenType::EOF_TOKEN, "", line, column);
 
     return tokens;
+}
+
+// 静态：覆盖全局符号映射
+void Lexer::OverrideSymbolMap(const std::unordered_map<std::string, TokenType>& newMap) {
+    sExternalMap = newMap;
+    sUseExternalMap = true;
+}
+
+void Lexer::ClearOverride() {
+    sExternalMap.clear();
+    sUseExternalMap = false;
 }
 
 // === Unicode和全角符号处理函数实现 ===

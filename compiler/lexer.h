@@ -51,8 +51,12 @@ private:
     int column;
     std::vector<Token> tokens;
 
-    // 符号映射表
+    // 符号映射表（默认ASCII）；可被全局覆盖
     std::unordered_map<std::string, TokenType> symbolMap;
+
+    // 全局外部符号映射，用于覆盖默认symbolMap（当检测到非英文文件名时启用）
+    static bool sUseExternalMap;
+    static std::unordered_map<std::string, TokenType> sExternalMap;
 
     void initSymbolMap();
     char peek();
@@ -65,6 +69,7 @@ private:
     bool isAlphaNumeric(char c);
 
     void scanString();
+    void scanFullWidthString(const std::string& startQuote);
     void scanChar();
     void scanNumber();
     void scanIdentifier();
@@ -76,6 +81,7 @@ private:
     bool isUnicodeSymbol(const std::string& str);
     bool isChineseChar(const std::string& str);
     bool isFullWidthSymbol(const std::string& str);
+    bool isFullWidthQuote(const std::string& str);
     void scanUnicodeSymbol();
     void scanChineseIdentifier();
     int getUTF8CharLength(char firstByte);
@@ -87,6 +93,12 @@ private:
 
 public:
     Lexer(const std::string& sourceCode);
+
+    // 覆盖全局符号映射（进程级别，一次设置全局生效）
+    static void OverrideSymbolMap(const std::unordered_map<std::string, TokenType>& newMap);
+    // 清除外部映射（恢复默认ASCII映射）
+    static void ClearOverride();
+
     std::vector<Token> tokenize();
     void printTokens() const;
 };
