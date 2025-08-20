@@ -1,7 +1,6 @@
 // 简单Parser测试
->> "iostream"
 
 main() {
-    ? x = 42
+    x := 42
     <- x
 }

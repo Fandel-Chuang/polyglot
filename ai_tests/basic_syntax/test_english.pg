@@ -1,29 +1,27 @@
 // 英文版polyglot测试代码
->> "iostream"
->> "string"
 
 @ Player {
-    $name: string,
-    $health: f32,
-    $position: Vector3
+    name: string,
+    health: f32,
+    position: Vector3
 }
 
 & Player {
-    Player($name: string, $health: f32) {
-        _.$name = $name
-        _.$health = $health
+    Player(name: string, health: f32) {
+        _.name = name
+        _.health = health
     }
 
-    take_damage($amount: f32) {
-        _.$health -= $amount
-        (_.$health <= 0.0) ? {
+    take_damage(amount: f32) {
+        _.health -= amount
+        (_.health <= 0.0) ? {
             print("Player died!")
         }
     }
 }
 
 main() {
-    ? $player = Player("Hero", 100.0)
-    $player.take_damage(25.0)
+    player := Player("Hero", 100.0)
+    player.take_damage(25.0)
     <- 0
 }

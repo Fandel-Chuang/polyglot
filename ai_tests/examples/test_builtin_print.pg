@@ -3,10 +3,10 @@
 
 main() {
     // Test new syntax with type inference
-    name: ? = "Alice"
-    age: ? = 25
-    score: ? = 95.5
-    is_student: ? = true
+    name := "Alice"
+    age := 25
+    score := 95.5
+    is_student := true
 
     // Test built-in print function
     print("=== polyglot v1.0.0 Test ===")

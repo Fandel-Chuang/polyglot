@@ -1,0 +1,7 @@
+// 测试AST解释器的简单polyglot程序
+
+main() {
+    message := "Hello from AST Interpreter!"
+    print(message)
+    <- 0
+}
