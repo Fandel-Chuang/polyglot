@@ -32,7 +32,10 @@ def norm(s: str) -> str:
 def run_case(case_dir: Path) -> dict:
     input_pg = case_dir / 'input.pg'
     input_zh = case_dir / 'input.文达'
+    # 兼容两种期望文件名，优先 expected.out，其次 expected.txt（为规避部分仓库 *.out 忽略规则）
     expected_out = case_dir / 'expected.out'
+    if not expected_out.exists():
+        expected_out = case_dir / 'expected.txt'
     expected_exit = case_dir / 'expected.exit'
 
     if not expected_out.exists():
