@@ -1,0 +1,275 @@
+// ========================================
+// 文达编程语言标准库 - 控制台输入输出模块
+// Console IO Module for polyglot Language
+// ========================================
+
+>> "core/types"
+
+// Console output functions
+print(message: string) {
+    console_print(message)
+}
+
+print(value: i32) {
+    console_print(to_string(value))
+}
+
+print(value: f64) {
+    console_print(to_string(value))
+}
+
+print(value: bool) {
+    console_print(to_string(value))
+}
+
+print(value: char) {
+    console_print(char_to_string(value))
+}
+
+// Formatted printing
+printf(format: string, args: ...) {
+    console_printf(format, args)
+}
+
+println(message: string) {
+    console_print(message + "\n")
+}
+
+println(value: i32) {
+    console_print(to_string(value) + "\n")
+}
+
+println(value: f64) {
+    console_print(to_string(value) + "\n")
+}
+
+println(value: bool) {
+    console_print(to_string(value) + "\n")
+}
+
+// Console input functions
+input() -> string {
+    <- console_input()
+}
+
+input(prompt: string) -> string {
+    console_print(prompt)
+    <- console_input()
+}
+
+// Type-safe input functions
+input_int() -> Option<i32> {
+    ? str = console_input()
+    <- to_int(str)
+}
+
+input_int(prompt: string) -> Option<i32> {
+    console_print(prompt)
+    ? str = console_input()
+    <- to_int(str)
+}
+
+input_float() -> Option<f64> {
+    ? str = console_input()
+    <- to_float(str)
+}
+
+input_float(prompt: string) -> Option<f64> {
+    console_print(prompt)
+    ? str = console_input()
+    <- to_float(str)
+}
+
+input_bool() -> Option<bool> {
+    ? str = console_input().trim().to_lowercase()
+    (str == "true" || str == "1" || str == "yes" || str == "y") ? {
+        <- Option<bool>(true)
+    } : (str == "false" || str == "0" || str == "no" || str == "n") ? {
+        <- Option<bool>(false)
+    } : {
+        <- Option<bool>()
+    }
+}
+
+input_bool(prompt: string) -> Option<bool> {
+    console_print(prompt)
+    <- input_bool()
+}
+
+// Advanced console functions
+clear_screen() {
+    console_clear()
+}
+
+set_cursor_position(x: i32, y: i32) {
+    console_set_cursor(x, y)
+}
+
+get_cursor_position() -> (i32, i32) {
+    <- console_get_cursor()
+}
+
+// Color output support
+@ Color {
+    RED: i32 = 31,
+    GREEN: i32 = 32,
+    YELLOW: i32 = 33,
+    BLUE: i32 = 34,
+    MAGENTA: i32 = 35,
+    CYAN: i32 = 36,
+    WHITE: i32 = 37,
+    RESET: i32 = 0
+}
+
+print_colored(message: string, color: i32) {
+    console_print("\x1b[" + to_string(color) + "m" + message + "\x1b[0m")
+}
+
+println_colored(message: string, color: i32) {
+    print_colored(message + "\n", color)
+}
+
+// Console utilities
+pause() {
+    console_print("Press any key to continue...")
+    console_input()
+}
+
+pause(message: string) {
+    console_print(message)
+    console_input()
+}
+
+// Error output
+eprint(message: string) {
+    console_error_print(message)
+}
+
+eprintln(message: string) {
+    console_error_print(message + "\n")
+}
+
+// Progress bar utility
+@ ProgressBar {
+    width: i32
+    filled_char: char
+    empty_char: char
+
+    ProgressBar(width: i32) {
+        _.width = width
+        _.filled_char = '█'
+        _.empty_char = '░'
+    }
+
+    ProgressBar(width: i32, filled: char, empty: char) {
+        _.width = width
+        _.filled_char = filled
+        _.empty_char = empty
+    }
+
+    show(progress: f64, message: string) {
+        ? filled = (progress * _.width as f64) as i32
+        ? empty = _.width - filled
+
+        console_print("\r" + message + " [")
+        ^(i in 0..filled) {
+            console_print(_.filled_char.to_string())
+        }
+        ^(i in 0..empty) {
+            console_print(_.empty_char.to_string())
+        }
+        console_print("] " + to_string((progress * 100.0) as i32) + "%")
+    }
+
+    finish(message: string) {
+        console_print("\r" + message + " [")
+        ^(i in 0.._.width) {
+            console_print(_.filled_char.to_string())
+        }
+        console_print("] 100%\n")
+    }
+}
+
+// Table formatting utility
+@ Table {
+    headers: Array<string>
+    rows: Array<Array<string>>
+    column_widths: Array<i32>
+
+    Table(headers: Array<string>) {
+        _.headers = headers
+        _.rows = Array<Array<string>>()
+        _.column_widths = Array<i32>()
+
+        // Initialize column widths based on headers
+        ^(header in headers) {
+            _.column_widths.push(header.length())
+        }
+    }
+
+    add_row(row: Array<string>) {
+        _.rows.push(row)
+
+        // Update column widths
+        ^(i in 0..row.length()) {
+            (i < _.column_widths.length()) ? {
+                _.column_widths[i] = max(_.column_widths[i], row[i].length())
+            }
+        }
+    }
+
+    print() {
+        // Print headers
+        console_print("┌")
+        ^(i in 0.._.headers.length()) {
+            ^(j in 0.._.column_widths[i] + 2) {
+                console_print("─")
+            }
+            (i < _.headers.length() - 1) ? {
+                console_print("┬")
+            }
+        }
+        console_print("┐\n")
+
+        console_print("│ ")
+        ^(i in 0.._.headers.length()) {
+            console_print(_.headers[i].pad_right(_.column_widths[i]))
+            console_print(" │ ")
+        }
+        console_print("\n")
+
+        // Print separator
+        console_print("├")
+        ^(i in 0.._.headers.length()) {
+            ^(j in 0.._.column_widths[i] + 2) {
+                console_print("─")
+            }
+            (i < _.headers.length() - 1) ? {
+                console_print("┼")
+            }
+        }
+        console_print("┤\n")
+
+        // Print rows
+        ^(row in _.rows) {
+            console_print("│ ")
+            ^(i in 0..row.length()) {
+                console_print(row[i].pad_right(_.column_widths[i]))
+                console_print(" │ ")
+            }
+            console_print("\n")
+        }
+
+        // Print bottom border
+        console_print("└")
+        ^(i in 0.._.headers.length()) {
+            ^(j in 0.._.column_widths[i] + 2) {
+                console_print("─")
+            }
+            (i < _.headers.length() - 1) ? {
+                console_print("┴")
+            }
+        }
+        console_print("┘\n")
+    }
+}

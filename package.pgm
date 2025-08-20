@@ -1,0 +1,35 @@
+# 测试项目配置文件
+# Test project configuration
+
+name = "polyglot-package-manager-demo"
+version = "1.0.0"
+description = "演示polyglot包管理器的示例项目"
+author = "Polyglot Team <team@polyglot-lang.org>"
+license = "MIT"
+repository = "github.com/polyglot-lang/polyglot"
+
+# 模拟的远程依赖（实际项目中这些应该是真实的仓库）
+# Simulated remote dependencies (in real projects these should be actual repos)
+dep.github.com/polyglot-community/http-client = "v1.5.0"
+dep.github.com/polyglot-community/json-parser = "v2.3.1"
+dep.gitlab.com/polyglot-libs/math-utils = "latest"
+dep.github.com/polyglot-community/graphics-2d = "branch:main"
+
+# 开发依赖
+dev.github.com/polyglot-community/test-framework = "v3.0.1"
+dev.github.com/polyglot-community/benchmark-tools = "latest"
+
+# 构建配置
+build.target = "release"
+build.optimization = "speed"
+build.output_dir = "build"
+
+# 编译器选项
+compiler.warnings = "all"
+compiler.strict_mode = true
+compiler.memory_checks = true
+
+# 项目元数据
+project.homepage = "https://polyglot-lang.org"
+project.documentation = "https://docs.polyglot-lang.org"
+project.keywords = "polyglot,compiler,package-manager,symbols"

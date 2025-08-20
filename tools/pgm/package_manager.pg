@@ -1,0 +1,623 @@
+// ========================================
+// 文达编程语言包管理器
+// Package Manager for polyglot/文达 Language
+// ========================================
+
+>> "io/console"
+>> "collections/array"
+>> "core/types"
+>> "math/math"
+
+// Package manager configuration
+@ PackageConfig {
+    name: string
+    version: string
+    description: string
+    author: string
+    license: string
+    repository: string
+    dependencies: HashMap<string, string>
+    dev_dependencies: HashMap<string, string>
+
+    PackageConfig() {
+        _.name = ""
+        _.version = "1.0.0"
+        _.description = ""
+        _.author = ""
+        _.license = "MIT"
+        _.repository = ""
+        _.dependencies = HashMap<string, string>()
+        _.dev_dependencies = HashMap<string, string>()
+    }
+
+    from_file(path: string) -> Result<PackageConfig, string> {
+        ? content_result = read_file(path)
+        (content_result.is_error()) ? {
+            <- Result<PackageConfig, string>("Failed to read package.pgm file")
+        }
+
+        ? config = PackageConfig()
+        ? lines = content_result.unwrap().split("\n")
+
+        ^(line in lines) {
+            ? trimmed = line.trim()
+            (trimmed.is_empty() || trimmed.starts_with("#")) ? {
+                continue
+            }
+
+            ? parts = trimmed.split("=")
+            (parts.length() >= 2) ? {
+                ? key = parts.at(0).trim()
+                ? value = parts.at(1).trim().replace("\"", "")
+
+                #{key} {
+                    "name" => config.name = value,
+                    "version" => config.version = value,
+                    "description" => config.description = value,
+                    "author" => config.author = value,
+                    "license" => config.license = value,
+                    "repository" => config.repository = value,
+                    _ => {
+                        (key.starts_with("dep.")) ? {
+                            ? dep_name = key.substring(4, key.length())
+                            config.dependencies.put(dep_name, value)
+                        } : (key.starts_with("dev.")) ? {
+                            ? dev_name = key.substring(4, key.length())
+                            config.dev_dependencies.put(dev_name, value)
+                        }
+                    }
+                }
+            }
+        }
+
+        <- Result<PackageConfig, string>(config)
+    }
+
+    to_file(path: string) -> Result<bool, string> {
+        ? content = "# Package configuration for " + _.name + "\n"
+        content += "name = \"" + _.name + "\"\n"
+        content += "version = \"" + _.version + "\"\n"
+        content += "description = \"" + _.description + "\"\n"
+        content += "author = \"" + _.author + "\"\n"
+        content += "license = \"" + _.license + "\"\n"
+        content += "repository = \"" + _.repository + "\"\n\n"
+
+        (_.dependencies.length() > 0) ? {
+            content += "# Dependencies\n"
+            ^(key in _.dependencies.keys()) {
+                ? value = _.dependencies.get(key).unwrap()
+                content += "dep." + key + " = \"" + value + "\"\n"
+            }
+            content += "\n"
+        }
+
+        (_.dev_dependencies.length() > 0) ? {
+            content += "# Development Dependencies\n"
+            ^(key in _.dev_dependencies.keys()) {
+                ? value = _.dev_dependencies.get(key).unwrap()
+                content += "dev." + key + " = \"" + value + "\"\n"
+            }
+        }
+
+        <- write_file(path, content)
+    }
+}
+
+// Git repository information
+@ GitRepo {
+    url: string
+    branch: string
+    tag: string
+    commit: string
+
+    GitRepo(url: string) {
+        _.url = url
+        _.branch = "main"
+        _.tag = ""
+        _.commit = ""
+    }
+
+    GitRepo(url: string, version: string) {
+        _.url = url
+        _.branch = "main"
+        _.tag = ""
+        _.commit = ""
+
+        (version.starts_with("v") || version.contains(".")) ? {
+            _.tag = version
+        } : (version.starts_with("branch:")) ? {
+            _.branch = version.substring(7, version.length())
+        } : (version.starts_with("commit:")) ? {
+            _.commit = version.substring(7, version.length())
+        }
+    }
+
+    clone_url() -> string {
+        // Convert various Git URL formats to HTTPS
+        (_.url.starts_with("github.com/")) ? {
+            <- "https://" + _.url + ".git"
+        } : (_.url.starts_with("gitlab.com/")) ? {
+            <- "https://" + _.url + ".git"
+        } : (_.url.starts_with("bitbucket.org/")) ? {
+            <- "https://" + _.url + ".git"
+        } : {
+            <- _.url
+        }
+    }
+
+    local_path(cache_dir: string) -> string {
+        ? safe_url = _.url.replace("/", "_").replace(":", "_").replace(".", "_")
+        <- cache_dir + "/" + safe_url
+    }
+}
+
+// Package cache manager
+@ PackageCache {
+    cache_dir: string
+
+    PackageCache() {
+        _.cache_dir = get_home_dir() + "/.pgm/cache"
+        ensure_dir_exists(_.cache_dir)
+    }
+
+    PackageCache(custom_cache_dir: string) {
+        _.cache_dir = custom_cache_dir
+        ensure_dir_exists(_.cache_dir)
+    }
+
+    download_package(repo: GitRepo) -> Result<string, string> {
+        ? local_path = repo.local_path(_.cache_dir)
+        ? clone_url = repo.clone_url()
+
+        // Check if already cached
+        (dir_exists(local_path)) ? {
+            println_colored("Package already cached: " + repo.url, Color::GREEN)
+            <- Result<string, string>(local_path)
+        }
+
+        println_colored("Downloading package: " + repo.url, Color::BLUE)
+
+        // Clone the repository
+        ? git_cmd = "git clone " + clone_url + " " + local_path
+        ? result = execute_command(git_cmd)
+
+        (result != 0) ? {
+            <- Result<string, string>("Failed to clone repository: " + repo.url)
+        }
+
+        // Checkout specific version if specified
+        (repo.tag != "") ? {
+            ? checkout_cmd = "cd " + local_path + " && git checkout " + repo.tag
+            ? checkout_result = execute_command(checkout_cmd)
+            (checkout_result != 0) ? {
+                <- Result<string, string>("Failed to checkout tag: " + repo.tag)
+            }
+        } : (repo.commit != "") ? {
+            ? checkout_cmd = "cd " + local_path + " && git checkout " + repo.commit
+            ? checkout_result = execute_command(checkout_cmd)
+            (checkout_result != 0) ? {
+                <- Result<string, string>("Failed to checkout commit: " + repo.commit)
+            }
+        } : (repo.branch != "main") ? {
+            ? checkout_cmd = "cd " + local_path + " && git checkout " + repo.branch
+            ? checkout_result = execute_command(checkout_cmd)
+            (checkout_result != 0) ? {
+                <- Result<string, string>("Failed to checkout branch: " + repo.branch)
+            }
+        }
+
+        println_colored("Package downloaded successfully: " + repo.url, Color::GREEN)
+        <- Result<string, string>(local_path)
+    }
+
+    update_package(repo: GitRepo) -> Result<string, string> {
+        ? local_path = repo.local_path(_.cache_dir)
+
+        (dir_exists(local_path)) ? {
+            println_colored("Updating package: " + repo.url, Color::BLUE)
+
+            ? pull_cmd = "cd " + local_path + " && git pull"
+            ? result = execute_command(pull_cmd)
+
+            (result != 0) ? {
+                <- Result<string, string>("Failed to update repository: " + repo.url)
+            }
+
+            println_colored("Package updated successfully: " + repo.url, Color::GREEN)
+            <- Result<string, string>(local_path)
+        } : {
+            <- _.download_package(repo)
+        }
+    }
+
+    clear_cache() {
+        println_colored("Clearing package cache...", Color::YELLOW)
+        remove_dir_recursive(_.cache_dir)
+        ensure_dir_exists(_.cache_dir)
+        println_colored("Cache cleared successfully", Color::GREEN)
+    }
+
+    list_cached() -> Array<string> {
+        <- list_directories(_.cache_dir)
+    }
+}
+
+// Dependency resolver
+@ DependencyResolver {
+    cache: PackageCache
+    resolved: HashMap<string, string>
+
+    DependencyResolver() {
+        _.cache = PackageCache()
+        _.resolved = HashMap<string, string>()
+    }
+
+    resolve_dependencies(config: PackageConfig) -> Result<HashMap<string, string>, string> {
+        _.resolved.clear()
+
+        // Resolve all dependencies recursively
+        ^(dep_name in config.dependencies.keys()) {
+            ? version = config.dependencies.get(dep_name).unwrap()
+            ? resolve_result = _.resolve_dependency(dep_name, version)
+
+            (resolve_result.is_error()) ? {
+                <- Result<HashMap<string, string>, string>(resolve_result.unwrap_error())
+            }
+        }
+
+        <- Result<HashMap<string, string>, string>(_.resolved)
+    }
+
+    resolve_dependency(name: string, version: string) -> Result<string, string> {
+        // Check if already resolved
+        (_.resolved.contains_key(name)) ? {
+            <- Result<string, string>(_.resolved.get(name).unwrap())
+        }
+
+        println("Resolving dependency: " + name + "@" + version)
+
+        ? repo = GitRepo(name, version)
+        ? download_result = _.cache.download_package(repo)
+
+        (download_result.is_error()) ? {
+            <- Result<string, string>(download_result.unwrap_error())
+        }
+
+        ? package_path = download_result.unwrap()
+        _.resolved.put(name, package_path)
+
+        // Check for nested dependencies
+        ? nested_config_path = package_path + "/package.pgm"
+        (file_exists(nested_config_path)) ? {
+            ? nested_config_result = PackageConfig().from_file(nested_config_path)
+            (nested_config_result.is_success()) ? {
+                ? nested_config = nested_config_result.unwrap()
+
+                // Resolve nested dependencies
+                ^(nested_name in nested_config.dependencies.keys()) {
+                    ? nested_version = nested_config.dependencies.get(nested_name).unwrap()
+                    ? nested_result = _.resolve_dependency(nested_name, nested_version)
+
+                    (nested_result.is_error()) ? {
+                        <- Result<string, string>(nested_result.unwrap_error())
+                    }
+                }
+            }
+        }
+
+        <- Result<string, string>(package_path)
+    }
+}
+
+// Main package manager
+@ PackageManager {
+    cache: PackageCache
+    resolver: DependencyResolver
+
+    PackageManager() {
+        _.cache = PackageCache()
+        _.resolver = DependencyResolver()
+    }
+
+    init_project(name: string) -> Result<bool, string> {
+        println_colored("Initializing new polyglot project: " + name, Color::BLUE)
+
+        ? config = PackageConfig()
+        config.name = name
+        config.description = "A new polyglot project"
+        config.author = get_username()
+
+        // Create directory structure
+        ensure_dir_exists(name)
+        ensure_dir_exists(name + "/src")
+        ensure_dir_exists(name + "/tests")
+
+        // Create package.pgm file
+        ? config_result = config.to_file(name + "/package.pgm")
+        (config_result.is_error()) ? {
+            <- Result<bool, string>("Failed to create package.pgm file")
+        }
+
+        // Create main.pg file
+        ? main_content = """>> "io/console"
+
+main() {
+    println("Hello, polyglot!")
+    <- 0
+}
+"""
+        ? main_result = write_file(name + "/src/main.pg", main_content)
+        (main_result.is_error()) ? {
+            <- Result<bool, string>("Failed to create main.pg file")
+        }
+
+        // Create README.md
+        ? readme_content = "# " + name + "\n\n" + config.description + "\n\n## Build\n\n```bash\npgm build\n```\n\n## Run\n\n```bash\npgm run\n```\n"
+        write_file(name + "/README.md", readme_content)
+
+        println_colored("Project initialized successfully!", Color::GREEN)
+        println("Created files:")
+        println("  " + name + "/package.pgm")
+        println("  " + name + "/src/main.pg")
+        println("  " + name + "/README.md")
+
+        <- Result<bool, string>(true)
+    }
+
+    add_dependency(dep_name: string, version: string) -> Result<bool, string> {
+        ? config_result = PackageConfig().from_file("package.pgm")
+        (config_result.is_error()) ? {
+            <- Result<bool, string>("No package.pgm file found. Run 'pgm init' first.")
+        }
+
+        ? config = config_result.unwrap()
+        config.dependencies.put(dep_name, version)
+
+        ? save_result = config.to_file("package.pgm")
+        (save_result.is_error()) ? {
+            <- Result<bool, string>("Failed to save package.pgm file")
+        }
+
+        println_colored("Added dependency: " + dep_name + "@" + version, Color::GREEN)
+
+        // Download the dependency
+        <- _.install_dependencies()
+    }
+
+    install_dependencies() -> Result<bool, string> {
+        ? config_result = PackageConfig().from_file("package.pgm")
+        (config_result.is_error()) ? {
+            <- Result<bool, string>("No package.pgm file found")
+        }
+
+        ? config = config_result.unwrap()
+        println_colored("Installing dependencies for " + config.name, Color::BLUE)
+
+        ? resolve_result = _.resolver.resolve_dependencies(config)
+        (resolve_result.is_error()) ? {
+            <- Result<bool, string>(resolve_result.unwrap_error())
+        }
+
+        println_colored("All dependencies installed successfully!", Color::GREEN)
+        <- Result<bool, string>(true)
+    }
+
+    update_dependencies() -> Result<bool, string> {
+        ? config_result = PackageConfig().from_file("package.pgm")
+        (config_result.is_error()) ? {
+            <- Result<bool, string>("No package.pgm file found")
+        }
+
+        ? config = config_result.unwrap()
+        println_colored("Updating dependencies for " + config.name, Color::BLUE)
+
+        ^(dep_name in config.dependencies.keys()) {
+            ? version = config.dependencies.get(dep_name).unwrap()
+            ? repo = GitRepo(dep_name, version)
+            _.cache.update_package(repo)
+        }
+
+        println_colored("All dependencies updated successfully!", Color::GREEN)
+        <- Result<bool, string>(true)
+    }
+
+    list_dependencies() -> Result<bool, string> {
+        ? config_result = PackageConfig().from_file("package.pgm")
+        (config_result.is_error()) ? {
+            <- Result<bool, string>("No package.pgm file found")
+        }
+
+        ? config = config_result.unwrap()
+
+        println_colored("Dependencies for " + config.name + ":", Color::BLUE)
+        (config.dependencies.length() == 0) ? {
+            println("  No dependencies found")
+        } : {
+            ^(dep_name in config.dependencies.keys()) {
+                ? version = config.dependencies.get(dep_name).unwrap()
+                println("  " + dep_name + "@" + version)
+            }
+        }
+
+        (config.dev_dependencies.length() > 0) ? {
+            println_colored("Development Dependencies:", Color::BLUE)
+            ^(dep_name in config.dev_dependencies.keys()) {
+                ? version = config.dev_dependencies.get(dep_name).unwrap()
+                println("  " + dep_name + "@" + version)
+            }
+        }
+
+        <- Result<bool, string>(true)
+    }
+
+    search_packages(query: string) -> Result<Array<string>, string> {
+        // This would integrate with a package registry in the future
+        println_colored("Searching for packages: " + query, Color::BLUE)
+        println("Package search functionality coming soon!")
+        println("For now, you can directly use Git repositories like:")
+        println("  github.com/username/repo")
+        println("  gitlab.com/username/repo")
+
+        <- Result<Array<string>, string>(Array<string>())
+    }
+
+    publish_package() -> Result<bool, string> {
+        ? config_result = PackageConfig().from_file("package.pgm")
+        (config_result.is_error()) ? {
+            <- Result<bool, string>("No package.pgm file found")
+        }
+
+        ? config = config_result.unwrap()
+
+        // Validation
+        (config.name == "") ? {
+            <- Result<bool, string>("Package name is required")
+        }
+        (config.version == "") ? {
+            <- Result<bool, string>("Package version is required")
+        }
+        (config.repository == "") ? {
+            <- Result<bool, string>("Repository URL is required for publishing")
+        }
+
+        println_colored("Publishing package: " + config.name + "@" + config.version, Color::BLUE)
+
+        // Create git tag
+        ? tag_cmd = "git tag v" + config.version
+        ? tag_result = execute_command(tag_cmd)
+
+        // Push to repository
+        ? push_cmd = "git push origin v" + config.version
+        ? push_result = execute_command(push_cmd)
+
+        (push_result != 0) ? {
+            <- Result<bool, string>("Failed to push tag to repository")
+        }
+
+        println_colored("Package published successfully!", Color::GREEN)
+        println("Your package is now available at: " + config.repository)
+
+        <- Result<bool, string>(true)
+    }
+}
+
+// CLI interface for the package manager
+main() {
+    ? args = get_command_args()
+
+    (args.length() < 2) ? {
+        print_help()
+        <- 1
+    }
+
+    ? pm = PackageManager()
+    ? command = args.at(1)
+
+    #{command} {
+        "init" => {
+            (args.length() < 3) ? {
+                println_colored("Error: Project name required", Color::RED)
+                println("Usage: pgm init <project_name>")
+                <- 1
+            }
+            ? result = pm.init_project(args.at(2))
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "add" => {
+            (args.length() < 3) ? {
+                println_colored("Error: Package name required", Color::RED)
+                println("Usage: pgm add <package_name> [version]")
+                <- 1
+            }
+            ? package_name = args.at(2)
+            ? version = (args.length() >= 4) ? args.at(3) : "latest"
+
+            ? result = pm.add_dependency(package_name, version)
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "install" => {
+            ? result = pm.install_dependencies()
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "update" => {
+            ? result = pm.update_dependencies()
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "list" => {
+            ? result = pm.list_dependencies()
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "search" => {
+            (args.length() < 3) ? {
+                println_colored("Error: Search query required", Color::RED)
+                println("Usage: pgm search <query>")
+                <- 1
+            }
+            ? result = pm.search_packages(args.at(2))
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "publish" => {
+            ? result = pm.publish_package()
+            (result.is_error()) ? {
+                println_colored("Error: " + result.unwrap_error(), Color::RED)
+                <- 1
+            }
+        },
+        "clean" => {
+            ? cache = PackageCache()
+            cache.clear_cache()
+        },
+        "help" => {
+            print_help()
+        },
+        _ => {
+            println_colored("Unknown command: " + command, Color::RED)
+            print_help()
+            <- 1
+        }
+    }
+
+    <- 0
+}
+
+print_help() {
+    println_colored("Polyglot Package Manager (pgm)", Color::BLUE)
+    println("")
+    println("Usage:")
+    println("  pgm <command> [options]")
+    println("")
+    println("Commands:")
+    println("  init <name>           Initialize a new project")
+    println("  add <package> [ver]   Add a dependency")
+    println("  install              Install all dependencies")
+    println("  update               Update all dependencies")
+    println("  list                 List all dependencies")
+    println("  search <query>       Search for packages")
+    println("  publish              Publish package to repository")
+    println("  clean                Clear package cache")
+    println("  help                 Show this help message")
+    println("")
+    println("Examples:")
+    println("  pgm init my-project")
+    println("  pgm add github.com/user/awesome-lib v1.2.3")
+    println("  pgm add gitlab.com/org/utils latest")
+    println("  pgm install")
+}

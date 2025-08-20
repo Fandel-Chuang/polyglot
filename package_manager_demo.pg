@@ -1,0 +1,106 @@
+// ========================================
+// 集成包管理器测试演示
+// Integrated Package Manager Demo
+// ========================================
+
+// 导入标准库
+>> "io/console"
+>> "math/math"
+
+// 导入远程依赖（包管理器会自动下载）
+// Import remote dependencies (package manager will auto-download)
+>> "github.com/polyglot-community/http-client"
+>> "github.com/polyglot-community/json-parser"
+>> "gitlab.com/polyglot-libs/math-utils"
+
+main() {
+    println("🚀 Polyglot集成包管理器测试")
+    println("=====================================")
+
+    test_local_libraries()
+    test_remote_dependencies()
+    test_math_calculations()
+
+    println("✅ 所有测试完成！")
+    <- 0
+}
+
+// 测试本地标准库
+test_local_libraries() {
+    println("\n📚 测试本地标准库...")
+
+    ? numbers = [1, 2, 3, 4, 5]
+    println("数组: " + to_string(numbers))
+
+    ? sum = 0
+    ^(num in numbers) {
+        sum += num
+    }
+    println("数组和: " + to_string(sum))
+}
+
+// 测试远程依赖（模拟）
+test_remote_dependencies() {
+    println("\n📦 测试远程依赖...")
+
+    // 注意：这些依赖在真实环境中需要实际存在
+    // 这里仅作为语法演示
+
+    println("📡 模拟HTTP客户端...")
+    // ? client = HttpClient()
+    // ? response = client.get("https://api.example.com")
+    println("✅ HTTP客户端库加载成功（模拟）")
+
+    println("📝 模拟JSON解析器...")
+    // ? json_data = JsonParser::parse("{\"test\": \"value\"}")
+    println("✅ JSON解析器库加载成功（模拟）")
+
+    println("🧮 模拟数学工具库...")
+    // ? result = MathUtils::calculate_fibonacci(10)
+    println("✅ 数学工具库加载成功（模拟）")
+}
+
+// 测试数学计算
+test_math_calculations() {
+    println("\n🧮 测试数学计算...")
+
+    ? pi = 3.14159
+    ? radius = 5.0
+    ? area = pi * radius * radius
+
+    println("圆周率: " + to_string(pi))
+    println("半径: " + to_string(radius))
+    println("面积: " + to_string(area))
+
+    // 测试更复杂的计算
+    ? base = 2.0
+    ? exponent = 10
+    ? power_result = 1.0
+
+    ? i = 0
+    ^(i < exponent) {
+        power_result *= base
+        i += 1
+    }
+
+    println(to_string(base) + "的" + to_string(exponent) + "次方: " + to_string(power_result))
+}
+
+// 演示错误处理
+handle_dependency_errors() {
+    println("\n⚠️ 依赖错误处理演示...")
+
+    // 模拟依赖不可用的情况
+    ? dependency_available = false
+
+    (dependency_available) ? {
+        println("✅ 使用高级第三方功能")
+    } : {
+        println("⚡ 依赖不可用，使用内置实现")
+        use_fallback_implementation()
+    }
+}
+
+use_fallback_implementation() {
+    println("使用内置的基础功能作为后备方案")
+}

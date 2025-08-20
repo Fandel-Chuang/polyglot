@@ -1,0 +1,177 @@
+// ========================================
+// 使用远程Git依赖的示例项目
+// Example project using remote Git dependencies
+// ========================================
+
+// 导入标准库
+>> "io/console"
+>> "collections/array"
+>> "math/math"
+
+// 导入远程Git依赖 - 包管理器会自动下载和管理这些依赖
+>> "github.com/polyglot-community/http-client"      // HTTP客户端库
+>> "github.com/polyglot-community/json-parser"      // JSON解析库
+>> "gitlab.com/awesome-org/data-structures"         // 高级数据结构
+>> "github.com/user/graphics-lib/vector2d"          // 2D图形库
+
+// 使用来自远程依赖的功能
+main() {
+    println_colored("🚀 Polyglot项目依赖管理示例", Color::BLUE)
+    println()
+
+    // 示例1: 使用HTTP客户端
+    test_http_client()
+
+    // 示例2: 使用JSON解析
+    test_json_parser()
+
+    // 示例3: 使用高级数据结构
+    test_data_structures()
+
+    // 示例4: 使用图形库
+    test_graphics()
+
+    <- 0
+}
+
+// 使用HTTP客户端库的示例
+test_http_client() {
+    println_colored("📡 测试HTTP客户端", Color::GREEN)
+
+    // 假设这是从github.com/polyglot-community/http-client导入的
+    ? client = HttpClient()
+    client.set_timeout(5000)  // 5秒超时
+
+    // 发送GET请求
+    ? response = client.get("https://api.github.com/repos/polyglot-lang/polyglot")
+
+    (response.is_success()) ? {
+        ? data = response.unwrap()
+        println("✅ HTTP请求成功:")
+        println("   状态码: " + to_string(data.status_code))
+        println("   响应大小: " + to_string(data.body.length()) + " 字节")
+    } : {
+        println("❌ HTTP请求失败: " + response.unwrap_error())
+    }
+    println()
+}
+
+// 使用JSON解析库的示例
+test_json_parser() {
+    println_colored("📝 测试JSON解析", Color::GREEN)
+
+    // 假设这是从github.com/polyglot-community/json-parser导入的
+    ? json_text = """
+    {
+        "name": "polyglot",
+        "version": "1.0.0",
+        "features": ["memory-safe", "symbol-syntax", "chinese-support"],
+        "stats": {
+            "lines_of_code": 50000,
+            "contributors": 25
+        }
+    }
+    """
+
+    ? parse_result = JsonParser::parse(json_text)
+    (parse_result.is_success()) ? {
+        ? json_obj = parse_result.unwrap()
+
+        println("✅ JSON解析成功:")
+        println("   项目名: " + json_obj.get_string("name").unwrap())
+        println("   版本: " + json_obj.get_string("version").unwrap())
+
+        ? features = json_obj.get_array("features").unwrap()
+        println("   特性数量: " + to_string(features.length()))
+
+        ? stats = json_obj.get_object("stats").unwrap()
+        ? loc = stats.get_number("lines_of_code").unwrap()
+        println("   代码行数: " + to_string(loc as i32))
+    } : {
+        println("❌ JSON解析失败: " + parse_result.unwrap_error())
+    }
+    println()
+}
+
+// 使用高级数据结构的示例
+test_data_structures() {
+    println_colored("🏗️ 测试高级数据结构", Color::GREEN)
+
+    // 假设这是从gitlab.com/awesome-org/data-structures导入的
+    ? trie = Trie<string>()  // 前缀树
+
+    // 添加一些中文词汇
+    ? words = ["你好", "世界", "编程", "语言", "文达", "polyglot"]
+    ^(word in words) {
+        trie.insert(word, word + "_data")
+    }
+
+    println("✅ 前缀树构建完成:")
+    println("   词汇数量: " + to_string(trie.size()))
+
+    // 测试前缀搜索
+    ? prefix_results = trie.find_with_prefix("编")
+    println("   以'编'开头的词: " + to_string(prefix_results.length()))
+
+    // 使用二叉搜索树
+    ? bst = BinarySearchTree<i32>()
+    ? numbers = [42, 17, 99, 3, 64, 28, 81]
+    ^(num in numbers) {
+        bst.insert(num)
+    }
+
+    println("   二叉搜索树节点数: " + to_string(bst.size()))
+    println("   树的高度: " + to_string(bst.height()))
+    println()
+}
+
+// 使用2D图形库的示例
+test_graphics() {
+    println_colored("🎨 测试2D图形库", Color::GREEN)
+
+    // 假设这是从github.com/user/graphics-lib/vector2d导入的
+    ? point1 = Point2D(10.0, 20.0)
+    ? point2 = Point2D(30.0, 40.0)
+
+    ? distance = point1.distance_to(point2)
+    println("✅ 2D图形计算:")
+    println("   点1: " + point1.to_string())
+    println("   点2: " + point2.to_string())
+    println("   距离: " + to_string(distance))
+
+    // 创建形状
+    ? rectangle = Rectangle(point1, 50.0, 30.0)
+    ? circle = Circle(point2, 15.0)
+
+    println("   矩形面积: " + to_string(rectangle.area()))
+    println("   圆形面积: " + to_string(circle.area()))
+
+    // 碰撞检测
+    ? collision = rectangle.intersects(circle)
+    println("   碰撞检测: " + (collision ? "相交" : "不相交"))
+    println()
+}
+
+// 错误处理示例
+handle_dependency_error() {
+    println_colored("⚠️ 依赖错误处理示例", Color::YELLOW)
+
+    // 如果依赖不可用，提供降级方案
+    ? fallback_result = try_load_dependency("github.com/optional/feature")
+
+    (fallback_result.is_error()) ? {
+        println("依赖加载失败，使用内置实现...")
+        use_builtin_implementation()
+    } : {
+        println("依赖加载成功，使用第三方实现...")
+        use_third_party_implementation()
+    }
+}
+
+use_builtin_implementation() {
+    println("使用内置的基础功能")
+}
+
+use_third_party_implementation() {
+    println("使用第三方的高级功能")
+}

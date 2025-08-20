@@ -46,6 +46,7 @@ set(HEADERS
     compiler/semantic.h
     compiler/codegen.h
     compiler/error.h
+    compiler/package_manager.h
 )
 
 # 创建可执行文件

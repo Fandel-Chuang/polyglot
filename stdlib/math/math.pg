@@ -1,0 +1,538 @@
+// ========================================
+// 文达编程语言标准库 - 数学模块
+// Math Module for polyglot Language
+// ========================================
+
+>> "core/types"
+
+// Mathematical Constants
+* PI = 3.14159265358979323846
+* E = 2.71828182845904523536
+* TAU = 6.28318530717958647692  // 2 * PI
+* GOLDEN_RATIO = 1.61803398874989484820
+* SQRT_2 = 1.41421356237309504880
+* SQRT_3 = 1.73205080756887729352
+
+// Basic mathematical functions
+abs(x: i32) -> i32 {
+    <- (x < 0) ? -x : x
+}
+
+abs(x: f64) -> f64 {
+    <- (x < 0.0) ? -x : x
+}
+
+min(a: i32, b: i32) -> i32 {
+    <- (a < b) ? a : b
+}
+
+min(a: f64, b: f64) -> f64 {
+    <- (a < b) ? a : b
+}
+
+max(a: i32, b: i32) -> i32 {
+    <- (a > b) ? a : b
+}
+
+max(a: f64, b: f64) -> f64 {
+    <- (a > b) ? a : b
+}
+
+clamp(value: i32, min_val: i32, max_val: i32) -> i32 {
+    <- max(min_val, min(value, max_val))
+}
+
+clamp(value: f64, min_val: f64, max_val: f64) -> f64 {
+    <- max(min_val, min(value, max_val))
+}
+
+// Power and root functions
+pow(base: f64, exponent: f64) -> f64 {
+    <- math_pow(base, exponent)
+}
+
+pow(base: i32, exponent: i32) -> i32 {
+    <- math_pow_int(base, exponent)
+}
+
+sqrt(x: f64) -> f64 {
+    <- math_sqrt(x)
+}
+
+cbrt(x: f64) -> f64 {
+    <- math_cbrt(x)
+}
+
+// Exponential and logarithmic functions
+exp(x: f64) -> f64 {
+    <- math_exp(x)
+}
+
+exp2(x: f64) -> f64 {
+    <- math_exp2(x)
+}
+
+log(x: f64) -> f64 {
+    <- math_log(x)
+}
+
+log10(x: f64) -> f64 {
+    <- math_log10(x)
+}
+
+log2(x: f64) -> f64 {
+    <- math_log2(x)
+}
+
+logn(x: f64, base: f64) -> f64 {
+    <- log(x) / log(base)
+}
+
+// Trigonometric functions
+sin(x: f64) -> f64 {
+    <- math_sin(x)
+}
+
+cos(x: f64) -> f64 {
+    <- math_cos(x)
+}
+
+tan(x: f64) -> f64 {
+    <- math_tan(x)
+}
+
+asin(x: f64) -> f64 {
+    <- math_asin(x)
+}
+
+acos(x: f64) -> f64 {
+    <- math_acos(x)
+}
+
+atan(x: f64) -> f64 {
+    <- math_atan(x)
+}
+
+atan2(y: f64, x: f64) -> f64 {
+    <- math_atan2(y, x)
+}
+
+// Hyperbolic functions
+sinh(x: f64) -> f64 {
+    <- math_sinh(x)
+}
+
+cosh(x: f64) -> f64 {
+    <- math_cosh(x)
+}
+
+tanh(x: f64) -> f64 {
+    <- math_tanh(x)
+}
+
+asinh(x: f64) -> f64 {
+    <- math_asinh(x)
+}
+
+acosh(x: f64) -> f64 {
+    <- math_acosh(x)
+}
+
+atanh(x: f64) -> f64 {
+    <- math_atanh(x)
+}
+
+// Rounding and truncation functions
+floor(x: f64) -> f64 {
+    <- math_floor(x)
+}
+
+ceil(x: f64) -> f64 {
+    <- math_ceil(x)
+}
+
+round(x: f64) -> f64 {
+    <- math_round(x)
+}
+
+trunc(x: f64) -> f64 {
+    <- math_trunc(x)
+}
+
+// Angle conversion functions
+to_radians(degrees: f64) -> f64 {
+    <- degrees * PI / 180.0
+}
+
+to_degrees(radians: f64) -> f64 {
+    <- radians * 180.0 / PI
+}
+
+// Utility functions
+sign(x: f64) -> i32 {
+    (x > 0.0) ? {
+        <- 1
+    } : (x < 0.0) ? {
+        <- -1
+    } : {
+        <- 0
+    }
+}
+
+sign(x: i32) -> i32 {
+    (x > 0) ? {
+        <- 1
+    } : (x < 0) ? {
+        <- -1
+    } : {
+        <- 0
+    }
+}
+
+is_even(x: i32) -> bool {
+    <- (x % 2) == 0
+}
+
+is_odd(x: i32) -> bool {
+    <- (x % 2) != 0
+}
+
+gcd(a: i32, b: i32) -> i32 {
+    ^(b != 0) {
+        ? temp = b
+        b = a % b
+        a = temp
+    }
+    <- a
+}
+
+lcm(a: i32, b: i32) -> i32 {
+    <- abs(a * b) / gcd(a, b)
+}
+
+factorial(n: i32) -> i32 {
+    (n <= 1) ? {
+        <- 1
+    } : {
+        <- n * factorial(n - 1)
+    }
+}
+
+fibonacci(n: i32) -> i32 {
+    (n <= 1) ? {
+        <- n
+    } : {
+        ? a = 0
+        ? b = 1
+        ^(i in 2..n + 1) {
+            ? temp = a + b
+            a = b
+            b = temp
+        }
+        <- b
+    }
+}
+
+is_prime(n: i32) -> bool {
+    (n < 2) ? {
+        <- false
+    }
+    (n == 2) ? {
+        <- true
+    }
+    (n % 2 == 0) ? {
+        <- false
+    }
+
+    ? i = 3
+    ^(i * i <= n) {
+        (n % i == 0) ? {
+            <- false
+        }
+        i += 2
+    }
+    <- true
+}
+
+// 2D Vector operations
+@ Vector2 {
+    x: f64
+    y: f64
+
+    Vector2(x: f64, y: f64) {
+        _.x = x
+        _.y = y
+    }
+
+    Vector2() {
+        _.x = 0.0
+        _.y = 0.0
+    }
+
+    length() -> f64 {
+        <- sqrt(_.x * _.x + _.y * _.y)
+    }
+
+    length_squared() -> f64 {
+        <- _.x * _.x + _.y * _.y
+    }
+
+    normalize() -> Vector2 {
+        ? len = _.length()
+        (len > 0.0) ? {
+            <- Vector2(_.x / len, _.y / len)
+        } : {
+            <- Vector2(0.0, 0.0)
+        }
+    }
+
+    dot(other: Vector2) -> f64 {
+        <- _.x * other.x + _.y * other.y
+    }
+
+    cross(other: Vector2) -> f64 {
+        <- _.x * other.y - _.y * other.x
+    }
+
+    distance_to(other: Vector2) -> f64 {
+        ? dx = _.x - other.x
+        ? dy = _.y - other.y
+        <- sqrt(dx * dx + dy * dy)
+    }
+
+    angle_to(other: Vector2) -> f64 {
+        <- atan2(other.y - _.y, other.x - _.x)
+    }
+
+    rotate(angle: f64) -> Vector2 {
+        ? cos_a = cos(angle)
+        ? sin_a = sin(angle)
+        <- Vector2(
+            _.x * cos_a - _.y * sin_a,
+            _.x * sin_a + _.y * cos_a
+        )
+    }
+
+    lerp(other: Vector2, t: f64) -> Vector2 {
+        <- Vector2(
+            _.x + (other.x - _.x) * t,
+            _.y + (other.y - _.y) * t
+        )
+    }
+
+    + (other: Vector2) -> Vector2 {
+        <- Vector2(_.x + other.x, _.y + other.y)
+    }
+
+    - (other: Vector2) -> Vector2 {
+        <- Vector2(_.x - other.x, _.y - other.y)
+    }
+
+    * (scalar: f64) -> Vector2 {
+        <- Vector2(_.x * scalar, _.y * scalar)
+    }
+
+    / (scalar: f64) -> Vector2 {
+        <- Vector2(_.x / scalar, _.y / scalar)
+    }
+
+    == (other: Vector2) -> bool {
+        <- abs(_.x - other.x) < 1e-10 && abs(_.y - other.y) < 1e-10
+    }
+
+    to_string() -> string {
+        <- "Vector2(" + to_string(_.x) + ", " + to_string(_.y) + ")"
+    }
+}
+
+// 3D Vector operations
+@ Vector3 {
+    x: f64
+    y: f64
+    z: f64
+
+    Vector3(x: f64, y: f64, z: f64) {
+        _.x = x
+        _.y = y
+        _.z = z
+    }
+
+    Vector3() {
+        _.x = 0.0
+        _.y = 0.0
+        _.z = 0.0
+    }
+
+    length() -> f64 {
+        <- sqrt(_.x * _.x + _.y * _.y + _.z * _.z)
+    }
+
+    length_squared() -> f64 {
+        <- _.x * _.x + _.y * _.y + _.z * _.z
+    }
+
+    normalize() -> Vector3 {
+        ? len = _.length()
+        (len > 0.0) ? {
+            <- Vector3(_.x / len, _.y / len, _.z / len)
+        } : {
+            <- Vector3(0.0, 0.0, 0.0)
+        }
+    }
+
+    dot(other: Vector3) -> f64 {
+        <- _.x * other.x + _.y * other.y + _.z * other.z
+    }
+
+    cross(other: Vector3) -> Vector3 {
+        <- Vector3(
+            _.y * other.z - _.z * other.y,
+            _.z * other.x - _.x * other.z,
+            _.x * other.y - _.y * other.x
+        )
+    }
+
+    distance_to(other: Vector3) -> f64 {
+        ? dx = _.x - other.x
+        ? dy = _.y - other.y
+        ? dz = _.z - other.z
+        <- sqrt(dx * dx + dy * dy + dz * dz)
+    }
+
+    lerp(other: Vector3, t: f64) -> Vector3 {
+        <- Vector3(
+            _.x + (other.x - _.x) * t,
+            _.y + (other.y - _.y) * t,
+            _.z + (other.z - _.z) * t
+        )
+    }
+
+    + (other: Vector3) -> Vector3 {
+        <- Vector3(_.x + other.x, _.y + other.y, _.z + other.z)
+    }
+
+    - (other: Vector3) -> Vector3 {
+        <- Vector3(_.x - other.x, _.y - other.y, _.z - other.z)
+    }
+
+    * (scalar: f64) -> Vector3 {
+        <- Vector3(_.x * scalar, _.y * scalar, _.z * scalar)
+    }
+
+    / (scalar: f64) -> Vector3 {
+        <- Vector3(_.x / scalar, _.y / scalar, _.z / scalar)
+    }
+
+    == (other: Vector3) -> bool {
+        <- abs(_.x - other.x) < 1e-10 &&
+           abs(_.y - other.y) < 1e-10 &&
+           abs(_.z - other.z) < 1e-10
+    }
+
+    to_string() -> string {
+        <- "Vector3(" + to_string(_.x) + ", " + to_string(_.y) + ", " + to_string(_.z) + ")"
+    }
+}
+
+// Random number generation
+@ Random {
+    seed: i64
+
+    Random() {
+        _.seed = system_time()
+    }
+
+    Random(initial_seed: i64) {
+        _.seed = initial_seed
+    }
+
+    next_int() -> i32 {
+        _.seed = (_.seed * 1103515245 + 12345) % (1 << 31)
+        <- _.seed as i32
+    }
+
+    next_int(max: i32) -> i32 {
+        <- _.next_int() % max
+    }
+
+    next_int(min: i32, max: i32) -> i32 {
+        <- min + _.next_int(max - min)
+    }
+
+    next_float() -> f64 {
+        <- _.next_int() as f64 / (1 << 31) as f64
+    }
+
+    next_float(max: f64) -> f64 {
+        <- _.next_float() * max
+    }
+
+    next_float(min: f64, max: f64) -> f64 {
+        <- min + _.next_float() * (max - min)
+    }
+
+    next_bool() -> bool {
+        <- _.next_int() % 2 == 0
+    }
+
+    shuffle<T>(array: Array<T>) {
+        ^(i in array.length() - 1..0) {
+            ? j = _.next_int(i + 1)
+            swap(array.at(i), array.at(j))
+        }
+    }
+
+    choice<T>(array: Array<T>) -> Option<T> {
+        (array.is_empty()) ? {
+            <- Option<T>()
+        } : {
+            <- Option<T>(array.at(_.next_int(array.length())))
+        }
+    }
+}
+
+// Global random instance
+? global_random = Random()
+
+random_int() -> i32 {
+    <- global_random.next_int()
+}
+
+random_int(max: i32) -> i32 {
+    <- global_random.next_int(max)
+}
+
+random_int(min: i32, max: i32) -> i32 {
+    <- global_random.next_int(min, max)
+}
+
+random_float() -> f64 {
+    <- global_random.next_float()
+}
+
+random_float(max: f64) -> f64 {
+    <- global_random.next_float(max)
+}
+
+random_float(min: f64, max: f64) -> f64 {
+    <- global_random.next_float(min, max)
+}
+
+random_bool() -> bool {
+    <- global_random.next_bool()
+}
+
+// Linear interpolation functions
+lerp(a: f64, b: f64, t: f64) -> f64 {
+    <- a + (b - a) * t
+}
+
+lerp(a: i32, b: i32, t: f64) -> i32 {
+    <- (a as f64 + (b as f64 - a as f64) * t) as i32
+}
+
+// Smoothstep function for smooth interpolation
+smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
+    ? t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+    <- t * t * (3.0 - 2.0 * t)
+}

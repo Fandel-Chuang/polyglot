@@ -372,7 +372,7 @@ clang-format -i compiler/*.cpp compiler/*.h
 - 🟢 符号配置系统: 完成
 - 🟡 标准库: 开发中
 - 🟡 IDE插件: 计划中
-- 🔴 包管理器: 未开始
+- � 包管理器: 已集成
 
 ---
 

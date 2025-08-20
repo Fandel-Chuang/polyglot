@@ -1,0 +1,501 @@
+// ========================================
+// 文达编程语言标准库 - 容器模块
+// Collections Module for polyglot Language
+// ========================================
+
+>> "core/types"
+
+// Dynamic Array (Vector) implementation
+@ Array<T> {
+    data: T*
+    size: i32
+    capacity: i32
+
+    Array() {
+        _.data = nullptr
+        _.size = 0
+        _.capacity = 0
+    }
+
+    Array(initial_capacity: i32) {
+        _.data = allocate<T>(initial_capacity)
+        _.size = 0
+        _.capacity = initial_capacity
+    }
+
+    Array(values: T[]) {
+        _.size = values.length
+        _.capacity = _.size * 2
+        _.data = allocate<T>(_.capacity)
+        ^(i in 0.._.size) {
+            _.data[i] = values[i]
+        }
+    }
+
+    ~Array() {
+        (_.data != nullptr) ? {
+            deallocate(_.data)
+        }
+    }
+
+    // Access operations
+    at(index: i32) -> T {
+        (index >= 0 && index < _.size) ? {
+            <- _.data[index]
+        } : {
+            panic("Array index out of bounds")
+        }
+    }
+
+    get(index: i32) -> Option<T> {
+        (index >= 0 && index < _.size) ? {
+            <- Option<T>(_.data[index])
+        } : {
+            <- Option<T>()
+        }
+    }
+
+    set(index: i32, value: T) {
+        (index >= 0 && index < _.size) ? {
+            _.data[index] = value
+        } : {
+            panic("Array index out of bounds")
+        }
+    }
+
+    first() -> Option<T> {
+        <- _.size > 0 ? Option<T>(_.data[0]) : Option<T>()
+    }
+
+    last() -> Option<T> {
+        <- _.size > 0 ? Option<T>(_.data[_.size - 1]) : Option<T>()
+    }
+
+    // Modification operations
+    push(value: T) {
+        (_ensure_capacity(_.size + 1))
+        _.data[_.size] = value
+        _.size += 1
+    }
+
+    pop() -> Option<T> {
+        (_.size > 0) ? {
+            _.size -= 1
+            <- Option<T>(_.data[_.size])
+        } : {
+            <- Option<T>()
+        }
+    }
+
+    insert(index: i32, value: T) {
+        (index >= 0 && index <= _.size) ? {
+            _ensure_capacity(_.size + 1)
+            // Shift elements to the right
+            ^(i in _.size..index) {
+                _.data[i + 1] = _.data[i]
+            }
+            _.data[index] = value
+            _.size += 1
+        } : {
+            panic("Array index out of bounds")
+        }
+    }
+
+    remove(index: i32) -> Option<T> {
+        (index >= 0 && index < _.size) ? {
+            ? removed = _.data[index]
+            // Shift elements to the left
+            ^(i in index.._.size - 1) {
+                _.data[i] = _.data[i + 1]
+            }
+            _.size -= 1
+            <- Option<T>(removed)
+        } : {
+            <- Option<T>()
+        }
+    }
+
+    clear() {
+        _.size = 0
+    }
+
+    // Query operations
+    length() -> i32 {
+        <- _.size
+    }
+
+    is_empty() -> bool {
+        <- _.size == 0
+    }
+
+    contains(value: T) -> bool {
+        ^(i in 0.._.size) {
+            (_.data[i] == value) ? {
+                <- true
+            }
+        }
+        <- false
+    }
+
+    find(value: T) -> Option<i32> {
+        ^(i in 0.._.size) {
+            (_.data[i] == value) ? {
+                <- Option<i32>(i)
+            }
+        }
+        <- Option<i32>()
+    }
+
+    count(value: T) -> i32 {
+        ? count = 0
+        ^(i in 0.._.size) {
+            (_.data[i] == value) ? {
+                count += 1
+            }
+        }
+        <- count
+    }
+
+    // Functional operations
+    map<U>(func: fn(T) -> U) -> Array<U> {
+        ? result = Array<U>(_.size)
+        ^(i in 0.._.size) {
+            result.push(func(_.data[i]))
+        }
+        <- result
+    }
+
+    filter(predicate: fn(T) -> bool) -> Array<T> {
+        ? result = Array<T>()
+        ^(i in 0.._.size) {
+            (predicate(_.data[i])) ? {
+                result.push(_.data[i])
+            }
+        }
+        <- result
+    }
+
+    reduce<U>(initial: U, func: fn(U, T) -> U) -> U {
+        ? accumulator = initial
+        ^(i in 0.._.size) {
+            accumulator = func(accumulator, _.data[i])
+        }
+        <- accumulator
+    }
+
+    foreach(func: fn(T) -> void) {
+        ^(i in 0.._.size) {
+            func(_.data[i])
+        }
+    }
+
+    // Sorting and searching
+    sort(comparator: fn(T, T) -> i32) {
+        // Quick sort implementation
+        (_.size > 1) ? {
+            _quick_sort(0, _.size - 1, comparator)
+        }
+    }
+
+    sort() {
+        // Default sort using < operator
+        sort(fn(a: T, b: T) -> i32 {
+            (a < b) ? <- -1 : (a > b) ? <- 1 : <- 0
+        })
+    }
+
+    binary_search(value: T) -> Option<i32> {
+        ? left = 0
+        ? right = _.size - 1
+
+        ^(left <= right) {
+            ? mid = (left + right) / 2
+            (_.data[mid] == value) ? {
+                <- Option<i32>(mid)
+            } : (_.data[mid] < value) ? {
+                left = mid + 1
+            } : {
+                right = mid - 1
+            }
+        }
+        <- Option<i32>()
+    }
+
+    // Array manipulation
+    reverse() {
+        ^(i in 0.._.size / 2) {
+            swap(_.data[i], _.data[_.size - 1 - i])
+        }
+    }
+
+    slice(start: i32, end: i32) -> Array<T> {
+        ? result = Array<T>()
+        ^(i in start..min(end, _.size)) {
+            result.push(_.data[i])
+        }
+        <- result
+    }
+
+    concat(other: Array<T>) -> Array<T> {
+        ? result = Array<T>(_.size + other.size)
+        ^(i in 0.._.size) {
+            result.push(_.data[i])
+        }
+        ^(i in 0..other.size) {
+            result.push(other.data[i])
+        }
+        <- result
+    }
+
+    // String conversion
+    to_string() -> string {
+        (_.size == 0) ? {
+            <- "[]"
+        }
+
+        ? result = "["
+        ^(i in 0.._.size) {
+            result += to_string(_.data[i])
+            (i < _.size - 1) ? {
+                result += ", "
+            }
+        }
+        result += "]"
+        <- result
+    }
+
+    // Private helper methods
+    _ensure_capacity(required: i32) {
+        (required > _.capacity) ? {
+            ? new_capacity = max(_.capacity * 2, required)
+            ? new_data = allocate<T>(new_capacity)
+
+            ^(i in 0.._.size) {
+                new_data[i] = _.data[i]
+            }
+
+            (_.data != nullptr) ? {
+                deallocate(_.data)
+            }
+
+            _.data = new_data
+            _.capacity = new_capacity
+        }
+    }
+
+    _quick_sort(low: i32, high: i32, comparator: fn(T, T) -> i32) {
+        (low < high) ? {
+            ? pivot = _partition(low, high, comparator)
+            _quick_sort(low, pivot - 1, comparator)
+            _quick_sort(pivot + 1, high, comparator)
+        }
+    }
+
+    _partition(low: i32, high: i32, comparator: fn(T, T) -> i32) -> i32 {
+        ? pivot = _.data[high]
+        ? i = low - 1
+
+        ^(j in low..high) {
+            (comparator(_.data[j], pivot) <= 0) ? {
+                i += 1
+                swap(_.data[i], _.data[j])
+            }
+        }
+        swap(_.data[i + 1], _.data[high])
+        <- i + 1
+    }
+}
+
+// Iterator for Array
+@ ArrayIterator<T> {
+    array ~= Array<T>
+    index: i32
+
+    ArrayIterator(arr: Array<T>) {
+        _.array ~= arr
+        _.index = 0
+    }
+
+    has_next() -> bool {
+        <- _.index < _.array.size
+    }
+
+    next() -> Option<T> {
+        (_.has_next()) ? {
+            ? value = _.array.data[_.index]
+            _.index += 1
+            <- Option<T>(value)
+        } : {
+            <- Option<T>()
+        }
+    }
+
+    reset() {
+        _.index = 0
+    }
+}
+
+// Hash Map implementation
+@ HashMap<K, V> {
+    buckets: Array<Array<(K, V)>>
+    size: i32
+    load_factor: f64
+
+    HashMap() {
+        _.buckets = Array<Array<(K, V)>>(16)
+        ^(i in 0..16) {
+            _.buckets.push(Array<(K, V)>())
+        }
+        _.size = 0
+        _.load_factor = 0.75
+    }
+
+    put(key: K, value: V) {
+        ? hash = _hash(key)
+        ? bucket_index = hash % _.buckets.length()
+        ? bucket = _.buckets.at(bucket_index)
+
+        // Check if key already exists
+        ^(i in 0..bucket.length()) {
+            (bucket.at(i).0 == key) ? {
+                bucket.set(i, (key, value))
+                <- // Exit early
+            }
+        }
+
+        // Add new key-value pair
+        bucket.push((key, value))
+        _.size += 1
+
+        // Check if resize is needed
+        (_.size as f64 / _.buckets.length() as f64 > _.load_factor) ? {
+            _resize()
+        }
+    }
+
+    get(key: K) -> Option<V> {
+        ? hash = _hash(key)
+        ? bucket_index = hash % _.buckets.length()
+        ? bucket = _.buckets.at(bucket_index)
+
+        ^(i in 0..bucket.length()) {
+            (bucket.at(i).0 == key) ? {
+                <- Option<V>(bucket.at(i).1)
+            }
+        }
+        <- Option<V>()
+    }
+
+    remove(key: K) -> Option<V> {
+        ? hash = _hash(key)
+        ? bucket_index = hash % _.buckets.length()
+        ? bucket = _.buckets.at(bucket_index)
+
+        ^(i in 0..bucket.length()) {
+            (bucket.at(i).0 == key) ? {
+                ? removed = bucket.at(i).1
+                bucket.remove(i)
+                _.size -= 1
+                <- Option<V>(removed)
+            }
+        }
+        <- Option<V>()
+    }
+
+    contains_key(key: K) -> bool {
+        <- _.get(key).is_some()
+    }
+
+    keys() -> Array<K> {
+        ? result = Array<K>()
+        ^(bucket in _.buckets) {
+            ^(pair in bucket) {
+                result.push(pair.0)
+            }
+        }
+        <- result
+    }
+
+    values() -> Array<V> {
+        ? result = Array<V>()
+        ^(bucket in _.buckets) {
+            ^(pair in bucket) {
+                result.push(pair.1)
+            }
+        }
+        <- result
+    }
+
+    length() -> i32 {
+        <- _.size
+    }
+
+    is_empty() -> bool {
+        <- _.size == 0
+    }
+
+    clear() {
+        ^(i in 0.._.buckets.length()) {
+            _.buckets.at(i).clear()
+        }
+        _.size = 0
+    }
+
+    _hash(key: K) -> i32 {
+        // Simple hash function - should be improved for production
+        <- hash_function(key)
+    }
+
+    _resize() {
+        ? old_buckets = _.buckets
+        _.buckets = Array<Array<(K, V)>>(old_buckets.length() * 2)
+        ^(i in 0.._.buckets.length()) {
+            _.buckets.push(Array<(K, V)>())
+        }
+        _.size = 0
+
+        // Rehash all elements
+        ^(bucket in old_buckets) {
+            ^(pair in bucket) {
+                _.put(pair.0, pair.1)
+            }
+        }
+    }
+}
+
+// Hash Set implementation
+@ HashSet<T> {
+    map: HashMap<T, bool>
+
+    HashSet() {
+        _.map = HashMap<T, bool>()
+    }
+
+    insert(value: T) {
+        _.map.put(value, true)
+    }
+
+    remove(value: T) -> bool {
+        <- _.map.remove(value).is_some()
+    }
+
+    contains(value: T) -> bool {
+        <- _.map.contains_key(value)
+    }
+
+    size() -> i32 {
+        <- _.map.length()
+    }
+
+    is_empty() -> bool {
+        <- _.map.is_empty()
+    }
+
+    clear() {
+        _.map.clear()
+    }
+
+    to_array() -> Array<T> {
+        <- _.map.keys()
+    }
+}
