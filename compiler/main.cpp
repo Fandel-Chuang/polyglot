@@ -147,15 +147,16 @@ std::string readFile(const std::string& filename) {
 
 // 判断文件名（不含扩展名）是否纯英文（ASCII 字母/数字/下划线/连字符）
 bool isEnglishFilename(const std::string& filepath) {
-    // 避免 Windows 上 std::filesystem 对中文路径的转换问题，这里用字符串解析
+    // 仅依据“完整文件名”（含扩展名）判断是否为英文；任意非 ASCII 即视为中文/本地化
     size_t pos = filepath.find_last_of("/\\");
     std::string name = (pos == std::string::npos) ? filepath : filepath.substr(pos + 1);
-    size_t dot = name.find_last_of('.');
-    std::string stem = (dot == std::string::npos) ? name : name.substr(0, dot);
-    if (stem.empty()) return true;
-    for (unsigned char ch : stem) {
-        if (ch > 127) return false; // 非 ASCII 直接判定为非英文
-        if (!(std::isalnum(ch) || ch == '_' || ch == '-')) return false;
+    if (name.empty()) return true;
+    for (unsigned char ch : name) {
+        if (ch > 127) return false; // 含有非 ASCII → 非英文文件名
+    }
+    // 允许的英文文件名字符（更严格）：字母/数字/下划线/连字符/点
+    for (unsigned char ch : name) {
+        if (!(std::isalnum(ch) || ch == '_' || ch == '-' || ch == '.')) return false;
     }
     return true;
 }
