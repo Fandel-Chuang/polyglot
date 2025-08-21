@@ -58,6 +58,13 @@ def run_case(case_dir: Path) -> dict:
             'reason': '缺少 input.pg 或 input.文达'
         }
 
+    # Windows 下可执行文件为 .exe，补全后缀
+    if os.name == 'nt':
+        if exec_path.suffix != '.exe':
+            exe_with_ext = exec_path.with_suffix('.exe')
+            if exe_with_ext.exists():
+                exec_path = exe_with_ext
+
     if not exec_path.exists():
         return {
             'name': case_dir.name,
