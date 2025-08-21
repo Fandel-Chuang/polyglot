@@ -11,23 +11,23 @@ on:
 
 jobs:
   build-test-debian:
-    runs-on: ubuntu-latest  # GitHub 托管运行器；通过 container 使用 Debian 环境
+    runs-on: ubuntu-latest
     container: debian:bookworm-slim
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: apt-get update && apt-get install -y cmake g++ ninja-build python3
+        run: apt-get update && apt-get install -y g++ python3
 
-      - name: Configure (CMake)
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Build compiler (gcc)
+        run: |
+          mkdir -p build/bin
+          g++ -std=c++17 -O2 compiler/*.cpp -o build/bin/polyglot
+          cp build/bin/polyglot build/bin/文达
 
-      - name: Build
-        run: cmake --build build -j
-
-      - name: Run CLI tests (wenda test)
-        run: ./build/bin/wenda test
+      - name: Run golden tests (python)
+        run: python3 tests/golden/run_golden.py
 
       - name: Upload golden report artifacts
         if: always()
@@ -44,17 +44,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure (CMake)
-        shell: pwsh
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -A x64
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Build
+      - name: Build compiler (cl)
         shell: pwsh
-        run: cmake --build build --config RelWithDebInfo
+        run: |
+          New-Item -ItemType Directory -Path build/bin -Force | Out-Null
+          cl /std:c++17 /EHsc /O2 compiler\*.cpp /Fe:build\bin\polyglot.exe
+          Copy-Item build\bin\polyglot.exe build\bin\文达.exe -Force
 
-      - name: Run CLI tests (wenda test)
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run golden tests (python)
         shell: pwsh
-        run: .\build\bin\wenda.exe test
+        run: python tests\golden\run_golden.py
 
       - name: Upload golden report artifacts
         if: always()

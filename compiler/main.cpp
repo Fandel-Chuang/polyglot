@@ -19,6 +19,7 @@
 // 最后包含系统特定头文件
 #ifdef _WIN32
 #include <windows.h>
+#include <shellapi.h>
 #include <io.h>
 #include <fcntl.h>
 #else
@@ -455,15 +456,36 @@ int main(int argc, char* argv[]) {
     // 设置控制台UTF-8编码
     setupConsoleUTF8();
 
+    // 解析命令行参数（Windows使用宽字符API获取UTF-16，再转UTF-8）
+    std::vector<std::string> args;
+#ifdef _WIN32
+    int wargc = 0;
+    LPWSTR* wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
+    if (wargv) {
+        for (int i = 1; i < wargc; ++i) {
+            int len = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, nullptr, 0, nullptr, nullptr);
+            if (len > 0) {
+                std::string u8;
+                u8.resize(len - 1);
+                WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, &u8[0], len, nullptr, nullptr);
+                args.push_back(u8);
+            }
+        }
+        LocalFree(wargv);
+    }
+#else
     if (argc < 2) {
         printUsage();
         return 1;
     }
-
-    // 解析命令行参数
-    std::vector<std::string> args;
     for (int i = 1; i < argc; ++i) {
         args.push_back(argv[i]);
+    }
+#endif
+
+    if (args.empty()) {
+        printUsage();
+        return 1;
     }
 
     bool updateDeps = false;
