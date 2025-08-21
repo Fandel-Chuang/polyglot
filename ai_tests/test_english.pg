@@ -1,6 +1,0 @@
->> "iostream"
-
-main() {
-    print("Hello, polyglot!")
-    <- 0
-}
