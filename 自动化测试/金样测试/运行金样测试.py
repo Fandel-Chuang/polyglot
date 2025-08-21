@@ -8,6 +8,7 @@ import json
 import difflib
 from pathlib import Path
 
+# 统一控制台编码为 UTF-8
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
@@ -42,15 +43,15 @@ def 解析可执行(path: Path) -> Path:
 
 def 运行用例(目录: Path) -> dict:
     输入_pg = 目录 / 'input.pg'
-    输入_中文 = 目录 / 'input.文达'
-    期望_输出 = 目录 / 'expected.out'
+    输入_中文 = 目录 / '输入.文达'
+    期望_输出 = 目录 / '期望.输出'
     if not 期望_输出.exists():
-        期望_输出 = 目录 / 'expected.txt'
-    期望_错误 = 目录 / 'expected.err'
-    期望_退出 = 目录 / 'expected.exit'
+        期望_输出 = 目录 / '期望.文本'
+    期望_错误 = 目录 / '期望.错误'
+    期望_退出 = 目录 / '期望.退出'
 
     if not 期望_输出.exists() and not 期望_错误.exists():
-        return {'名称': 目录.name, '状态': '错误', '原因': '缺少 expected.out/expected.txt 或 expected.err'}
+        return {'名称': 目录.name, '状态': '错误', '原因': '缺少 期望.输出/期望.文本 或 期望.错误'}
 
     if 输入_pg.exists():
         执行器 = 可执行_英文
@@ -59,7 +60,7 @@ def 运行用例(目录: Path) -> dict:
         执行器 = 可执行_中文
         源 = 输入_中文
     else:
-        return {'名称': 目录.name, '状态': '错误', '原因': '缺少 input.pg 或 input.文达'}
+        return {'名称': 目录.name, '状态': '错误', '原因': '缺少 input.pg 或 输入.文达'}
 
     执行器 = 解析可执行(执行器)
     if not 执行器.exists():
@@ -70,7 +71,7 @@ def 运行用例(目录: Path) -> dict:
         try:
             退出码期望 = int(期望_退出.read_text(encoding='utf-8').strip())
         except Exception:
-            return {'名称': 目录.name, '状态': '错误', '原因': 'expected.exit 不是有效整数'}
+            return {'名称': 目录.name, '状态': '错误', '原因': '期望.退出 不是有效整数'}
 
     try:
         进程 = subprocess.run([

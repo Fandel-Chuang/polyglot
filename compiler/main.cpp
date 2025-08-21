@@ -509,6 +509,7 @@ int main(int argc, char* argv[]) {
     bool noDeps = false;
     bool showDepsInfo = false;
     bool verbose = false;
+    bool quiet = false;
     std::string sourceFile;
 
     // 处理选项
@@ -528,6 +529,8 @@ int main(int argc, char* argv[]) {
             showDepsInfo = true;
         } else if (arg == "-v" || arg == "--verbose") {
             verbose = true;
+        } else if (arg == "--quiet") {
+            quiet = true;
         } else if (arg.find("--") == 0) {
             std::cerr << "❌ 未知选项: " << arg << std::endl;
             printUsage();
@@ -603,7 +606,16 @@ int main(int argc, char* argv[]) {
         }
 
         // 使用AST解释器模式进行编译执行
-        compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
+        if (quiet) {
+            struct NullBuffer : public std::streambuf { int overflow(int c) { return c; } };
+            static NullBuffer nb;
+            static std::ostream nullOut(&nb);
+            std::streambuf* oldBuf = std::cout.rdbuf(nullOut.rdbuf());
+            compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
+            std::cout.rdbuf(oldBuf);
+        } else {
+            compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
+        }
 
     } catch (const CompilerError& e) {
         std::cerr << "解释执行错误: " << e.what() << std::endl;

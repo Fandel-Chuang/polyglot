@@ -3,6 +3,7 @@
 #include <fstream>
 #include <typeinfo>
 #include <sstream>
+#include <cstdio>
 
 namespace polyglot {
 
@@ -12,8 +13,22 @@ ASTValue ASTInterpreter::interpret(std::unique_ptr<Program>& program) {
 
     std::cout << "🚀 开始解释执行AST..." << std::endl;
 
+    // 先遍历一遍，记录入口函数（main/主函数）
+    FunctionDecl* entry = nullptr;
     for (auto& stmt : program->statements) {
+        if (auto f = dynamic_cast<FunctionDecl*>(stmt.get())) {
+            if (f->name == "main" || f->name == "主函数") {
+                entry = f;
+            }
+        }
+        // 仍然走一遍常规访问，处理顶层语句/变量等
         result = visit(stmt.get());
+    }
+
+    // 自动执行入口函数（仅限无参数）
+    if (entry && entry->body) {
+        // 直接访问函数体节点，避免类型不匹配
+        (void)visit(entry->body.get());
     }
 
     std::cout << "✅ AST解释执行完成" << std::endl;
@@ -172,12 +187,14 @@ void ASTInterpreter::setupBuiltins() {
 ASTValue ASTInterpreter::callBuiltinFunction(const std::string& name,
                                            const std::vector<ASTValue>& args) {
     if (name == "print" || name == "打印") {
-        std::cout << "📢 输出: ";
+        std::string out;
         for (size_t i = 0; i < args.size(); ++i) {
-            std::cout << args[i].toString();
-            if (i < args.size() - 1) std::cout << " ";
+            out += args[i].toString();
+            if (i < args.size() - 1) out += " ";
         }
-        std::cout << std::endl;
+        out += "\n";
+        std::fwrite(out.c_str(), 1, out.size(), stdout);
+        std::fflush(stdout);
         return ASTValue();
     }
 
