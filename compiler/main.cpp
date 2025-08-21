@@ -592,7 +592,7 @@ int main(int argc, char* argv[]) {
                 throw CompilerError("检测到中文/本地化文件名，但源码为英文/ASCII。请将文件名改为英文，或将代码改为中文/全角风格（例如使用书名号“”、返回箭头《- 等）。");
             }
 
-            std::cout << "🌐 检测到非英文文件名，按本地化符号配置进行规范化处理..." << std::endl;
+            if (!quiet) std::cout << "🌐 检测到非英文文件名，按本地化符号配置进行规范化处理..." << std::endl;
             // 1) 预处理：将源代码中的本地化符号规范化为ASCII（避免在编译器内部处理全角）
             sourceCode = normalizeSourceBySymbols(sourceCode, "symbol_mapping.json");
             // 2) 替换内存中的符号映射（如需在后续阶段基于JSON的符号集做进一步处理）
@@ -601,7 +601,7 @@ int main(int argc, char* argv[]) {
                 Lexer::OverrideSymbolMap(loader.getAllSymbolTokenTypes());
             }
         } else {
-            std::cout << "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）" << std::endl;
+            if (!quiet) std::cout << "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）" << std::endl;
             Lexer::ClearOverride();
         }
 
