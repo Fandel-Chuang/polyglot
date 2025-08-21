@@ -33,7 +33,11 @@ public:
     std::string toString() const {
         switch(type) {
             case INT: return std::to_string(std::any_cast<int>(value));
-            case FLOAT: return std::to_string(std::any_cast<double>(value));
+            case FLOAT: {
+                char buf[64];
+                std::snprintf(buf, sizeof(buf), "%.6f", std::any_cast<double>(value));
+                return std::string(buf);
+            }
             case STRING: return std::any_cast<std::string>(value);
             case BOOL: return std::any_cast<bool>(value) ? "true" : "false";
             case VOID: return "void";

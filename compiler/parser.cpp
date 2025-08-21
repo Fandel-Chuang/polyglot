@@ -157,17 +157,36 @@ std::unique_ptr<VariableDecl> Parser::parseVariableDecl() {
     consume(TokenType::COLON, "期望 ':'");
 
     // 检查类型位置
-    if (peek().type == TokenType::QUESTION) {
+    auto tt = peek().type;
+    if (tt == TokenType::QUESTION) {
         // name: ? = value 形式 (auto 类型推导)
         advance(); // 跳过 ?
         // 不设置 varDecl->type，让语义分析器推导类型
-    } else if (peek().type == TokenType::IDENTIFIER) {
-        // name: type = value 形式 (显式类型)
-        varDecl->type = std::make_unique<TypeNode>(advance().value);
     } else {
-        throw ParserError("期望类型名或 '?' 进行类型推导", peek().line, peek().column);
+        // 允许内置类型或标识符类型
+        std::string typeName;
+        if (tt == TokenType::IDENTIFIER) {
+            typeName = advance().value;
+        } else {
+            switch (tt) {
+                case TokenType::TYPE_I8: typeName = "i8"; break;
+                case TokenType::TYPE_I16: typeName = "i16"; break;
+                case TokenType::TYPE_I32: typeName = "i32"; break;
+                case TokenType::TYPE_I64: typeName = "i64"; break;
+                case TokenType::TYPE_F32: typeName = "f32"; break;
+                case TokenType::TYPE_F64: typeName = "f64"; break;
+                case TokenType::TYPE_BOOL: typeName = "bool"; break;
+                case TokenType::TYPE_STRING: typeName = "string"; break;
+                case TokenType::TYPE_CHAR: typeName = "char"; break;
+                default:
+                    throw ParserError("期望类型名或 '?' 进行类型推导", peek().line, peek().column);
+            }
+            advance();
+        }
+        varDecl->type = std::make_unique<TypeNode>(typeName);
     }
 
+    // 支持 = 赋值
     if (peek().type == TokenType::ASSIGN) {
         advance(); // 跳过 =
         varDecl->initializer = parseExpression();
@@ -287,12 +306,23 @@ std::unique_ptr<Statement> Parser::parseStatement() {
         }
         case TokenType::IDENTIFIER: {
             // 检查是否为变量声明 (identifier: type 或 identifier: ?)
-            if ((this->current + 1) < tokens.size() && tokens[this->current + 1].type == TokenType::COLON) {
-                return parseVariableDeclStmt();
-            } else {
-                // 其他标识符语句（表达式语句等）
-                return parseExpressionStmt();
+            if ((this->current + 1) < tokens.size()) {
+                auto nextType = tokens[this->current + 1].type;
+                if (nextType == TokenType::COLON) {
+                    return parseVariableDeclStmt();
+                }
+                // 支持海象声明 identifier := expr（中文全角：= 已在预处理阶段规范为 :=）
+                if (nextType == TokenType::CONDITIONAL_ASSIGN) {
+                    // 构造一个变量声明（类型推导）
+                    auto varDecl = std::make_unique<VariableDecl>();
+                    varDecl->name = advance().value; // 标识符
+                    advance(); // 跳过 :=
+                    varDecl->initializer = parseExpression();
+                    return varDecl;
+                }
             }
+            // 其他标识符语句（表达式语句等）
+            return parseExpressionStmt();
         }
         case TokenType::RETURN_ARROW:  // <- 返回语句
             return parseReturnStmt();

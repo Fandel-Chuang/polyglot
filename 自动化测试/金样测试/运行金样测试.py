@@ -15,6 +15,9 @@ try:
 except Exception:
     pass
 
+# 明细输出模式（默认开启）
+明细输出 = True
+
 根 = Path(__file__).resolve().parents[2]
 构建目录 = 根 / 'build' / 'bin'
 可执行_英文 = 构建目录 / 'polyglot'
@@ -118,6 +121,8 @@ def 主程序():
         if r.get('状态') == '通过':
             统计['通过'] += 1
             print(f"[通过] {r['名称']}")
+            if 明细输出 and r.get('stdout'):
+                print(r['stdout'])
         elif r.get('状态') == '失败':
             统计['失败'] += 1
             print(f"[失败] {r['名称']}")
@@ -128,6 +133,12 @@ def 主程序():
                 预期.splitlines(True), 实得.splitlines(True), fromfile='expected', tofile='got', lineterm=''
             ))
             (报告目录 / f"{r['名称']}.diff.txt").write_text(差异, encoding='utf-8')
+            if 明细输出:
+                print('  --- expected ---')
+                print(预期)
+                print('  --- got ---')
+                print(实得)
+                print(f"  exit: got {r.get('退出码')} expected {0 if 'expected_stdout' in r else 1}")
         else:
             统计['错误'] += 1
             print(f"[错误] {r['名称']}: {r.get('原因','')}")

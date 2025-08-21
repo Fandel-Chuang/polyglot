@@ -320,6 +320,23 @@ std::string SemanticAnalyzer::visitExpression(Expression* expr) {
         return visitLiteral(literal);
     } else if (auto binaryOp = dynamic_cast<BinaryOp*>(expr)) {
         return visitBinaryOp(binaryOp);
+    } else if (auto funcCall = dynamic_cast<FunctionCall*>(expr)) {
+        // 函数调用：目前仅校验函数是否存在；参数类型暂放宽（print/打印 可接受任意参数）
+        Symbol* sym = symbolTable.lookupSymbol(funcCall->name);
+        if (!sym || sym->type != std::string("function")) {
+            // 允许内置函数未显式登记时继续，但给出提示
+            std::cout << "     ⚠️ 未登记的函数调用: " << funcCall->name << std::endl;
+            // 仍然尝试分析参数，确保子表达式被遍历
+            for (auto& arg : funcCall->arguments) {
+                visitExpression(arg.get());
+            }
+            return "void";
+        }
+        // 遍历参数表达式（触发类型检查/推导）
+        for (auto& arg : funcCall->arguments) {
+            visitExpression(arg.get());
+        }
+        return "void";
     }
 
     return "unknown";
