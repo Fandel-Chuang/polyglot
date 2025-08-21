@@ -1,23 +1,53 @@
 {
-  "total": 3,
+  "total": 5,
   "passed": 0,
-  "failed": 0,
-  "errors": 3,
+  "failed": 5,
+  "errors": 0,
   "results": [
     {
       "name": "hello_en",
-      "status": "ERROR",
-      "reason": "可执行器缺失：E:\\polyglot\\polyglot\\build\\bin\\polyglot"
+      "status": "FAIL",
+      "exit": 0,
+      "stdout": "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）\n🚀 开始解释执行 polyglot 程序: E:\\polyglot\\polyglot\\tests\\golden\\cases\\hello_en\\input.pg\n📦 步骤 0: 依赖管理...\n   📂 设置包含路径: 0 个路径\n📝 步骤 1: 词法分析...\n   🔤 词法分析完成\n🔍 步骤 2: 语法分析...\n🚀 Parser初始化完成，准备解析 15 个Token\n   📋 开始解析polyglot代码...\n   📋 Token数量: 15\n   🔧 解析函数定义: main\n   🔄 parseStatement: Token类型=33, 值='print'\n   🔄 parseStatement: Token类型=3, 值='<-'\n   🔄 parseStatement: Token类型=54, 值='}'\n   ✅ 解析完成，生成了 1 个顶级语句\n   ✅ 生成了抽象语法树\n🧠 步骤 3: 语义分析...\n   🧠 开始语义分析...\n     返回语句: int\n     函数声明: main(0 参数) -> void\n   ✅ 语义分析完成，无错误\n   ✅ 语义检查通过\n🔍 步骤 5: AST分析...\n🔍 开始分析AST...\n📊 AST分析完成:\n  - 总节点数: 1\n  - 函数数量: 1\n  - 变量数量: 0\n  - 最大深度: 0\n   ✅ AST分析完成\n🚀 步骤 7: AST解释执行...\n🚀 开始解释执行AST...\n🔧 定义函数: main\n✅ AST解释执行完成\n\n🎉 polyglot程序解释执行完成！\n   📊 程序统计:\n     - 总节点数: 1\n     - 函数数量: 1\n     - 变量数量: 0",
+      "stderr": "",
+      "expected_exit": 0,
+      "expected_stdout": "print(\"hello\")"
     },
     {
       "name": "hello_zh",
-      "status": "ERROR",
-      "reason": "可执行器缺失：E:\\polyglot\\polyglot\\build\\bin\\文达"
+      "status": "FAIL",
+      "exit": 1,
+      "stdout": "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）\n🚀 开始解释执行 polyglot 程序: E:\\polyglot\\polyglot\\tests\\golden\\cases\\hello_zh\\input.文达\n📦 步骤 0: 依赖管理...\n   📂 设置包含路径: 0 个路径\n📝 步骤 1: 词法分析...",
+      "stderr": "解释执行错误: 词法错误: 未知的Unicode字符: 《",
+      "expected_exit": 0,
+      "expected_stdout": "这是一条中文内容"
     },
     {
       "name": "中文文件名_ASCII内容",
-      "status": "ERROR",
-      "reason": "可执行器缺失：E:\\polyglot\\polyglot\\build\\bin\\文达"
+      "status": "FAIL",
+      "exit": 1,
+      "stdout": "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）\n🚀 开始解释执行 polyglot 程序: E:\\polyglot\\polyglot\\tests\\golden\\cases\\中文文件名_ASCII内容\\input.文达\n📦 步骤 0: 依赖管理...\n   📂 设置包含路径: 0 个路径\n📝 步骤 1: 词法分析...\n   🔤 词法分析完成\n🔍 步骤 2: 语法分析...\n🚀 Parser初始化完成，准备解析 6 个Token\n   📋 开始解析polyglot代码...\n   📋 Token数量: 6\n   🔧 解析函数定义: print\n   ❌ 解析错误: 语法错误: 期望变量名",
+      "stderr": "解释执行错误: 语法错误: 期望变量名",
+      "expected_exit": 0,
+      "expected_stdout": "解释执行错误: 检测到中文/本地化文件名，但源码为英文/ASCII。请将文件名改为英文，或将代码改为中文/全角风格（例如使用书名号“”、返回箭头《- 等）。"
+    },
+    {
+      "name": "中文文件名_书名号_返回",
+      "status": "FAIL",
+      "exit": 1,
+      "stdout": "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）\n🚀 开始解释执行 polyglot 程序: E:\\polyglot\\polyglot\\tests\\golden\\cases\\中文文件名_书名号_返回\\input.文达\n📦 步骤 0: 依赖管理...\n   📂 设置包含路径: 0 个路径\n📝 步骤 1: 词法分析...",
+      "stderr": "解释执行错误: 词法错误: 未知的Unicode字符: ：",
+      "expected_exit": 0,
+      "expected_stdout": "你好，文达！"
+    },
+    {
+      "name": "中文文件名_全角括号与运算符",
+      "status": "FAIL",
+      "exit": 1,
+      "stdout": "🔤 检测到英文文件名，使用默认符号映射（不加载JSON）\n🚀 开始解释执行 polyglot 程序: E:\\polyglot\\polyglot\\tests\\golden\\cases\\中文文件名_全角括号与运算符\\input.文达\n📦 步骤 0: 依赖管理...\n   📂 设置包含路径: 0 个路径\n📝 步骤 1: 词法分析...",
+      "stderr": "解释执行错误: 词法错误: 未知的Unicode字符: ：",
+      "expected_exit": 0,
+      "expected_stdout": "通过：全角括号与大于号"
     }
   ]
 }

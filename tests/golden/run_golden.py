@@ -17,6 +17,18 @@ import json
 import difflib
 from pathlib import Path
 
+# 强制控制台使用 UTF-8，避免 Windows 控制台编码报错
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    try:
+        import codecs
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'replace')
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'replace')
+    except Exception:
+        pass
+
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_BIN = ROOT / 'build' / 'bin'
 BIN_EN = BUILD_BIN / 'polyglot'
@@ -28,6 +40,21 @@ REPORT_DIR = ROOT / 'tests' / 'golden' / 'report'
 def norm(s: str) -> str:
     # 统一为 \n，并裁剪尾随空白
     return "\n".join([line.rstrip() for line in s.replace('\r\n', '\n').replace('\r', '\n').split('\n')]).rstrip()
+
+
+def resolve_exec(path: Path) -> Path:
+    if path.exists():
+        return path
+    if os.name == 'nt':
+        p = Path(str(path) + '.exe')
+        if p.exists():
+            return p
+        # 兼容中文别名
+        if path.name == '文达':
+            p2 = path.with_name('wenda_cn.exe')
+            if p2.exists():
+                return p2
+    return path
 
 
 def run_case(case_dir: Path) -> dict:
@@ -59,12 +86,8 @@ def run_case(case_dir: Path) -> dict:
             'reason': '缺少 input.pg 或 input.文达'
         }
 
-    # Windows 下可执行文件为 .exe，补全后缀
-    if os.name == 'nt':
-        if exec_path.suffix != '.exe':
-            exe_with_ext = exec_path.with_suffix('.exe')
-            if exe_with_ext.exists():
-                exec_path = exe_with_ext
+    # 解析可执行路径（兼容 .exe 与 wenda_cn.exe）
+    exec_path = resolve_exec(exec_path)
 
     if not exec_path.exists():
         return {
