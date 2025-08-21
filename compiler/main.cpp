@@ -160,6 +160,21 @@ bool isEnglishFilename(const std::string& filepath) {
     return true;
 }
 
+// 判断源码是否纯 ASCII（忽略常见空白字符）
+bool isAsciiContent(const std::string& content) {
+    // 跳过 UTF-8 BOM
+    size_t i = 0;
+    if (content.size() >= 3 && (unsigned char)content[0] == 0xEF && (unsigned char)content[1] == 0xBB && (unsigned char)content[2] == 0xBF) {
+        i = 3;
+    }
+    for (; i < content.size(); ++i) {
+        unsigned char ch = static_cast<unsigned char>(content[i]);
+        if (ch <= 127) continue; // ASCII
+        return false;            // 出现非 ASCII
+    }
+    return true;
+}
+
 // 简单解析 JSON，提取 string_delimiters.double_quote 列表（不依赖第三方库）
 static std::vector<std::string> parseDoubleQuoteVariants(const std::string& json) {
     std::vector<std::string> variants;
@@ -568,6 +583,11 @@ int main(int argc, char* argv[]) {
 
         // 语种检测：英文文件名 -> 使用默认符号；非英文文件名 -> 加载 JSON 并进行源码规范化
         if (!isEnglishFilename(sourceFile)) {
+            // 新规则：中文/本地化文件名，但源码为英文/ASCII，直接报错提示开发者
+            if (isAsciiContent(sourceCode)) {
+                throw CompilerError("检测到中文/本地化文件名，但源码为英文/ASCII。请将文件名改为英文，或将代码改为中文/全角风格（例如使用书名号“”、返回箭头《- 等）。");
+            }
+
             std::cout << "🌐 检测到非英文文件名，按本地化符号配置进行规范化处理..." << std::endl;
             // 1) 预处理：将源代码中的本地化符号规范化为ASCII（避免在编译器内部处理全角）
             sourceCode = normalizeSourceBySymbols(sourceCode, "symbol_mapping.json");

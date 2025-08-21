@@ -54,6 +54,8 @@ jobs:
           New-Item -ItemType Directory -Path build/bin -Force | Out-Null
           cl /std:c++17 /EHsc /O2 compiler\*.cpp /Fe:build\bin\polyglot.exe
           Copy-Item build\bin\polyglot.exe build\bin\文达.exe -Force
+          # 增加英文别名，提升中文路径/环境兼容性
+          Copy-Item build\bin\文达.exe build\bin\wenda_cn.exe -Force
 
       - name: Setup Python
         uses: actions/setup-python@v4

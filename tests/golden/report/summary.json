@@ -1,0 +1,23 @@
+{
+  "total": 3,
+  "passed": 0,
+  "failed": 0,
+  "errors": 3,
+  "results": [
+    {
+      "name": "hello_en",
+      "status": "ERROR",
+      "reason": "可执行器缺失：E:\\polyglot\\polyglot\\build\\bin\\polyglot"
+    },
+    {
+      "name": "hello_zh",
+      "status": "ERROR",
+      "reason": "可执行器缺失：E:\\polyglot\\polyglot\\build\\bin\\文达"
+    },
+    {
+      "name": "中文文件名_ASCII内容",
+      "status": "ERROR",
+      "reason": "可执行器缺失：E:\\polyglot\\polyglot\\build\\bin\\文达"
+    }
+  ]
+}
