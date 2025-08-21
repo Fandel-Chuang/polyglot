@@ -14,6 +14,7 @@ import subprocess
 import sys
 import os
 import json
+import difflib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -129,6 +130,9 @@ def main() -> int:
         if p.is_dir():
             cases.append(p)
 
+    # 确保报告目录存在，便于在循环内输出差异/错误文件
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+
     results = []
     passed = 0
     failed = 0
@@ -144,14 +148,29 @@ def main() -> int:
         elif status == 'FAIL':
             failed += 1
             print(f"[FAIL] {r['name']}")
+            exp = r.get('expected_stdout', '')
+            got = r.get('stdout', '')
+            # 控制台输出简要信息
             print('  --- expected ---')
-            print(r.get('expected_stdout', ''))
+            print(exp)
             print('  --- got ---')
-            print(r.get('stdout', ''))
+            print(got)
             print(f"  exit: got {r.get('exit')} expected {r.get('expected_exit')}")
+            # 生成差异文件，供 CI 工件下载
+            diff_text = ''.join(difflib.unified_diff(
+                exp.splitlines(True),
+                got.splitlines(True),
+                fromfile='expected',
+                tofile='got',
+                lineterm=''
+            ))
+            (REPORT_DIR / f"{r['name']}.diff.txt").write_text(diff_text, encoding='utf-8')
         else:
             errors += 1
-            print(f"[ERROR] {r['name']}: {r.get('reason')}")
+            reason = r.get('reason', '')
+            print(f"[ERROR] {r['name']}: {reason}")
+            err_payload = f"reason: {reason}\n\nstdout:\n{r.get('stdout','')}\n\nstderr:\n{r.get('stderr','')}\n"
+            (REPORT_DIR / f"{r['name']}.error.txt").write_text(err_payload, encoding='utf-8')
 
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     (REPORT_DIR / 'summary.json').write_text(

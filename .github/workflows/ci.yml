@@ -34,7 +34,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: golden-report-debian
-          path: tests/golden/report/**
+          path: |
+            tests/golden/report/**
           if-no-files-found: ignore
           retention-days: 7
 
@@ -68,6 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: golden-report-windows
-          path: tests/golden/report/**
+          path: |
+            tests/golden/report/**
           if-no-files-found: ignore
           retention-days: 7
