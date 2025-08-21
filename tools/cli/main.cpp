@@ -126,9 +126,9 @@ static int cmd_test(const std::vector<std::string> &args) {
 
     // 1) 金样测试（若存在驱动脚本）
     // 优先中文路径，其次旧版英文路径
-    if (fs::exists("人工智能——自动化测试/金样测试/run_golden.py") || fs::exists("tests/golden/run_golden.py")) {
-        std::string runner = fs::exists("人工智能——自动化测试/金样测试/run_golden.py")
-            ? "人工智能——自动化测试/金样测试/run_golden.py"
+    if (fs::exists("自动化测试/金样测试/run_golden.py") || fs::exists("tests/golden/run_golden.py")) {
+        std::string runner = fs::exists("自动化测试/金样测试/run_golden.py")
+            ? "自动化测试/金样测试/run_golden.py"
             : "tests/golden/run_golden.py";
         int grc = run_cmd(std::string("python3 ") + runner);
         // 0 通过；2 代表未发现用例，则继续尝试其他；其他为失败

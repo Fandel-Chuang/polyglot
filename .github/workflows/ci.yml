@@ -28,8 +28,8 @@ jobs:
 
       - name: Run golden tests (python)
         run: |
-          if [ -f "人工智能——自动化测试/金样测试/run_golden.py" ]; then
-            python3 "人工智能——自动化测试/金样测试/run_golden.py"
+          if [ -f "自动化测试/金样测试/run_golden.py" ]; then
+            python3 "自动化测试/金样测试/run_golden.py"
           else
             python3 tests/golden/run_golden.py
           fi
@@ -40,7 +40,7 @@ jobs:
         with:
           name: golden-report-debian
           path: |
-            人工智能——自动化测试/金样测试/report/**
+            自动化测试/金样测试/report/**
             tests/golden/report/**
           if-no-files-found: ignore
           retention-days: 7
@@ -71,8 +71,8 @@ jobs:
       - name: Run golden tests (python)
         shell: pwsh
         run: |
-          if (Test-Path "人工智能——自动化测试/金样测试/run_golden.py") {
-            python "人工智能——自动化测试/金样测试/run_golden.py"
+          if (Test-Path "自动化测试/金样测试/run_golden.py") {
+            python "自动化测试/金样测试/run_golden.py"
           } else {
             python tests\golden\run_golden.py
           }
@@ -83,7 +83,7 @@ jobs:
         with:
           name: golden-report-windows
           path: |
-            人工智能——自动化测试/金样测试/report/**
+            自动化测试/金样测试/report/**
             tests/golden/report/**
           if-no-files-found: ignore
           retention-days: 7
