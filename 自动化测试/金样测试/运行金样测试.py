@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-# 文达 金样测试（Golden Test）驱动器（CLI:Command-Line Interface）
-# 用法：
-#   python3 tests/golden/run_golden.py
-# 约定：
-#   - 测例放在 tests/golden/cases/<case_name>/
-#   - 输入文件命名为 input.pg 或 input.文达（二选一）
-#   - 期望输出命名为 expected.out（必需）
-#   - 可选退出码 expected.exit（整数，默认 0）
-# 比对策略：
-#   - 输出做尾随空白裁剪，换行差异不影响判定
+# 金样测试运行器（中文路径与中文用例名）
 
 import subprocess
 import sys
@@ -17,193 +8,135 @@ import json
 import difflib
 from pathlib import Path
 
-# 强制控制台使用 UTF-8，避免 Windows 控制台编码报错
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 except Exception:
-    try:
-        import codecs
-        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'replace')
-        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'replace')
-    except Exception:
-        pass
+    pass
 
-ROOT = Path(__file__).resolve().parents[2]
-BUILD_BIN = ROOT / 'build' / 'bin'
-BIN_EN = BUILD_BIN / 'polyglot'
-BIN_ZH = BUILD_BIN / '文达'
-CASES_DIR = ROOT / 'tests' / 'golden' / 'cases'
-REPORT_DIR = ROOT / 'tests' / 'golden' / 'report'
+根 = Path(__file__).resolve().parents[2]
+构建目录 = 根 / 'build' / 'bin'
+可执行_英文 = 构建目录 / 'polyglot'
+可执行_中文 = 构建目录 / '文达'
+用例目录 = 根 / '自动化测试' / '金样测试' / '用例'
+报告目录 = 根 / '自动化测试' / '金样测试' / '报告'
 
 
-def norm(s: str) -> str:
-    # 统一为 \n，并裁剪尾随空白
-    return "\n".join([line.rstrip() for line in s.replace('\r\n', '\n').replace('\r', '\n').split('\n')]).rstrip()
+def 规范化(s: str) -> str:
+    return "\n".join([行.rstrip() for 行 in s.replace('\r\n', '\n').replace('\r', '\n').split('\n')]).rstrip()
 
 
-def resolve_exec(path: Path) -> Path:
+def 解析可执行(path: Path) -> Path:
     if path.exists():
         return path
     if os.name == 'nt':
         p = Path(str(path) + '.exe')
         if p.exists():
             return p
-        # 兼容中文别名
         if path.name == '文达':
-            p2 = path.with_name('wenda_cn.exe')
-            if p2.exists():
-                return p2
+            别名 = path.with_name('wenda_cn.exe')
+            if 别名.exists():
+                return 别名
     return path
 
 
-def run_case(case_dir: Path) -> dict:
-    input_pg = case_dir / 'input.pg'
-    input_zh = case_dir / 'input.文达'
-    # 兼容两种期望文件名，优先 expected.out，其次 expected.txt（为规避部分仓库 *.out 忽略规则）
-    expected_out = case_dir / 'expected.out'
-    if not expected_out.exists():
-        expected_out = case_dir / 'expected.txt'
-    expected_exit = case_dir / 'expected.exit'
+def 运行用例(目录: Path) -> dict:
+    输入_pg = 目录 / 'input.pg'
+    输入_中文 = 目录 / 'input.文达'
+    期望_输出 = 目录 / 'expected.out'
+    if not 期望_输出.exists():
+        期望_输出 = 目录 / 'expected.txt'
+    期望_错误 = 目录 / 'expected.err'
+    期望_退出 = 目录 / 'expected.exit'
 
-    if not expected_out.exists():
-        return {
-            'name': case_dir.name,
-            'status': 'ERROR',
-            'reason': 'expected.out 缺失'
-        }
+    if not 期望_输出.exists() and not 期望_错误.exists():
+        return {'名称': 目录.name, '状态': '错误', '原因': '缺少 expected.out/expected.txt 或 expected.err'}
 
-    if input_pg.exists():
-        exec_path = BIN_EN
-        src_path = input_pg
-    elif input_zh.exists():
-        exec_path = BIN_ZH
-        src_path = input_zh
+    if 输入_pg.exists():
+        执行器 = 可执行_英文
+        源 = 输入_pg
+    elif 输入_中文.exists():
+        执行器 = 可执行_中文
+        源 = 输入_中文
     else:
-        return {
-            'name': case_dir.name,
-            'status': 'ERROR',
-            'reason': '缺少 input.pg 或 input.文达'
-        }
+        return {'名称': 目录.name, '状态': '错误', '原因': '缺少 input.pg 或 input.文达'}
 
-    # 解析可执行路径（兼容 .exe 与 wenda_cn.exe）
-    exec_path = resolve_exec(exec_path)
+    执行器 = 解析可执行(执行器)
+    if not 执行器.exists():
+        return {'名称': 目录.name, '状态': '错误', '原因': f'可执行器缺失：{执行器}'}
 
-    if not exec_path.exists():
-        return {
-            'name': case_dir.name,
-            'status': 'ERROR',
-            'reason': f'可执行器缺失：{exec_path}'
-        }
-
-    exp_exit = 0
-    if expected_exit.exists():
+    退出码期望 = 0
+    if 期望_退出.exists():
         try:
-            exp_exit = int(expected_exit.read_text(encoding='utf-8').strip())
+            退出码期望 = int(期望_退出.read_text(encoding='utf-8').strip())
         except Exception:
-            return {
-                'name': case_dir.name,
-                'status': 'ERROR',
-                'reason': 'expected.exit 不是有效整数'
-            }
+            return {'名称': 目录.name, '状态': '错误', '原因': 'expected.exit 不是有效整数'}
 
-    # 执行
     try:
-        proc = subprocess.run(
-            [str(exec_path), str(src_path)],
-            cwd=str(ROOT),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8'
-        )
+        进程 = subprocess.run([
+            str(执行器), '--quiet', str(源)
+        ], cwd=str(根), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
     except Exception as e:
-        return {
-            'name': case_dir.name,
-            'status': 'ERROR',
-            'reason': f'执行失败: {e}'
-        }
+        return {'名称': 目录.name, '状态': '错误', '原因': f'执行失败: {e}'}
 
-    got_out = norm(proc.stdout)
-    got_err = norm(proc.stderr)
-    got_exit = proc.returncode
+    实得_出 = 规范化(进程.stdout)
+    实得_错 = 规范化(进程.stderr)
+    实得_退 = 进程.returncode
 
-    exp_out = norm(expected_out.read_text(encoding='utf-8'))
+    通过 = False
+    结果 = {'名称': 目录.name, '退出码': 实得_退, 'stdout': 实得_出, 'stderr': 实得_错}
 
-    ok = (got_exit == exp_exit) and (got_out == exp_out)
+    if 期望_错误.exists():
+        期望_错 = 规范化(期望_错误.read_text(encoding='utf-8'))
+        通过 = (实得_退 == 退出码期望) and (实得_错 == 期望_错)
+        结果['expected_stderr'] = 期望_错
+    else:
+        期望_出 = 规范化(期望_输出.read_text(encoding='utf-8'))
+        通过 = (实得_退 == 退出码期望) and (实得_出 == 期望_出)
+        结果['expected_stdout'] = 期望_出
 
-    return {
-        'name': case_dir.name,
-        'status': 'PASS' if ok else 'FAIL',
-        'exit': got_exit,
-        'stdout': got_out,
-        'stderr': got_err,
-        'expected_exit': exp_exit,
-        'expected_stdout': exp_out,
-    }
+    结果['状态'] = '通过' if 通过 else '失败'
+    return 结果
 
 
-def main() -> int:
-    cases = []
-    if not CASES_DIR.exists():
-        print(f"[golden] 未发现用例目录：{CASES_DIR}")
+def 主程序():
+    if not 用例目录.exists():
+        print(f"[golden] 未发现用例目录：{用例目录}")
         return 2
 
-    for p in sorted(CASES_DIR.iterdir()):
-        if p.is_dir():
-            cases.append(p)
+    报告目录.mkdir(parents=True, exist_ok=True)
 
-    # 确保报告目录存在，便于在循环内输出差异/错误文件
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    用例集 = [p for p in sorted(用例目录.iterdir()) if p.is_dir()]
 
-    results = []
-    passed = 0
-    failed = 0
-    errors = 0
+    统计 = {'总数': 0, '通过': 0, '失败': 0, '错误': 0, '结果': []}
 
-    for c in cases:
-        r = run_case(c)
-        results.append(r)
-        status = r.get('status')
-        if status == 'PASS':
-            passed += 1
-            print(f"[PASS] {r['name']}")
-        elif status == 'FAIL':
-            failed += 1
-            print(f"[FAIL] {r['name']}")
-            exp = r.get('expected_stdout', '')
-            got = r.get('stdout', '')
-            # 控制台输出简要信息
-            print('  --- expected ---')
-            print(exp)
-            print('  --- got ---')
-            print(got)
-            print(f"  exit: got {r.get('exit')} expected {r.get('expected_exit')}")
-            # 生成差异文件，供 CI 工件下载
-            diff_text = ''.join(difflib.unified_diff(
-                exp.splitlines(True),
-                got.splitlines(True),
-                fromfile='expected',
-                tofile='got',
-                lineterm=''
+    for 例 in 用例集:
+        r = 运行用例(例)
+        统计['结果'].append(r)
+        统计['总数'] += 1
+        if r.get('状态') == '通过':
+            统计['通过'] += 1
+            print(f"[通过] {r['名称']}")
+        elif r.get('状态') == '失败':
+            统计['失败'] += 1
+            print(f"[失败] {r['名称']}")
+            # 生成差异
+            预期 = r.get('expected_stdout', '') or r.get('expected_stderr', '')
+            实得 = r.get('stdout', '') if 'expected_stdout' in r else r.get('stderr', '')
+            差异 = ''.join(difflib.unified_diff(
+                预期.splitlines(True), 实得.splitlines(True), fromfile='expected', tofile='got', lineterm=''
             ))
-            (REPORT_DIR / f"{r['name']}.diff.txt").write_text(diff_text, encoding='utf-8')
+            (报告目录 / f"{r['名称']}.diff.txt").write_text(差异, encoding='utf-8')
         else:
-            errors += 1
-            reason = r.get('reason', '')
-            print(f"[ERROR] {r['name']}: {reason}")
-            err_payload = f"reason: {reason}\n\nstdout:\n{r.get('stdout','')}\n\nstderr:\n{r.get('stderr','')}\n"
-            (REPORT_DIR / f"{r['name']}.error.txt").write_text(err_payload, encoding='utf-8')
+            统计['错误'] += 1
+            print(f"[错误] {r['名称']}: {r.get('原因','')}")
+            详情 = f"原因: {r.get('原因','')}\n\nstdout:\n{r.get('stdout','')}\n\nstderr:\n{r.get('stderr','')}\n"
+            (报告目录 / f"{r['名称']}.error.txt").write_text(详情, encoding='utf-8')
 
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    (REPORT_DIR / 'summary.json').write_text(
-        json.dumps({'total': len(results), 'passed': passed, 'failed': failed, 'errors': errors, 'results': results}, ensure_ascii=False, indent=2),
-        encoding='utf-8'
-    )
-
-    print(f"\n[golden] total={len(results)} passed={passed} failed={failed} errors={errors}")
-    return 0 if (failed == 0 and errors == 0) else 1
+    (报告目录 / '汇总.json').write_text(json.dumps(统计, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(f"\n[golden] 总数={统计['总数']} 通过={统计['通过']} 失败={统计['失败']} 错误={统计['错误']}")
+    return 0 if (统计['失败'] == 0 and 统计['错误'] == 0) else 1
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(主程序())
