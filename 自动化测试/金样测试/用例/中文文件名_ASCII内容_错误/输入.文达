@@ -1,0 +1,4 @@
+main() {
+    print("ascii-only content")
+    <- 0
+}
