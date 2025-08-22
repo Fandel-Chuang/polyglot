@@ -6,6 +6,7 @@ import sys
 import os
 import json
 import difflib
+import re
 from pathlib import Path
 
 # 统一控制台编码为 UTF-8
@@ -27,7 +28,24 @@ except Exception:
 
 
 def 规范化(s: str) -> str:
+    # 去除 BOM
+    if s.startswith('\ufeff'):
+        s = s.lstrip('\ufeff')
+    # 统一换行并裁剪尾随空白
     return "\n".join([行.rstrip() for 行 in s.replace('\r\n', '\n').replace('\r', '\n').split('\n')]).rstrip()
+
+
+# 过滤编译横幅/日志行，仅保留“用户程序输出”
+_LOG_PREFIX = re.compile(r'^(🌐|✅|🔤|🚀|📦|📝|🔍|🧠|❌|🎉|⏭️|🎯|🔨|🌳|📊|📄|🎨|⚠️)')
+
+def 过滤日志(s: str) -> str:
+    if not s:
+        return s
+    行 = []
+    for line in s.split('\n'):
+        if not _LOG_PREFIX.match(line):
+            行.append(line)
+    return "\n".join(行).strip()
 
 
 def 解析可执行(path: Path) -> Path:
@@ -72,7 +90,7 @@ def 运行用例(目录: Path) -> dict:
     退出码期望 = 0
     if 期望_退出.exists():
         try:
-            退出码期望 = int(期望_退出.read_text(encoding='utf-8').strip())
+            退出码期望 = int(规范化(期望_退出.read_text(encoding='utf-8')))
         except Exception:
             return {'名称': 目录.name, '状态': '错误', '原因': '期望.退出 不是有效整数'}
 
@@ -83,8 +101,8 @@ def 运行用例(目录: Path) -> dict:
     except Exception as e:
         return {'名称': 目录.name, '状态': '错误', '原因': f'执行失败: {e}'}
 
-    实得_出 = 规范化(进程.stdout)
-    实得_错 = 规范化(进程.stderr)
+    实得_出 = 过滤日志(规范化(进程.stdout))
+    实得_错 = 过滤日志(规范化(进程.stderr))
     实得_退 = 进程.returncode
 
     通过 = False
@@ -138,7 +156,8 @@ def 主程序():
                 print(预期)
                 print('  --- got ---')
                 print(实得)
-                print(f"  exit: got {r.get('退出码')} expected {0 if 'expected_stdout' in r else 1}")
+                exp_exit = 0 if 'expected_stdout' in r else (r.get('expected_exit', 1))
+                print(f"  exit: got {r.get('退出码')} expected {exp_exit}")
         else:
             统计['错误'] += 1
             print(f"[错误] {r['名称']}: {r.get('原因','')}")

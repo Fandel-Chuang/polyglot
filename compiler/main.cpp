@@ -207,7 +207,7 @@ std::string normalizeSourceBySymbols(const std::string& source, const std::strin
     loader.loadConfig();
     const auto& allMap = loader.getAllSymbolTokenTypes();
 
-    // 2) 为每个 TokenType 选取一个 ASCII 代表符号
+    // 2) 先收集 ASCII 代表符号
     std::unordered_map<int, std::string> asciiCanonical;
     for (const auto& kv : allMap) {
         const std::string& sym = kv.first;
@@ -219,7 +219,26 @@ std::string normalizeSourceBySymbols(const std::string& source, const std::strin
         }
     }
 
-    // 3) 构造替换表：将所有非 ASCII 的同类符号替换为 ASCII 代表
+    // 3) 获取所有引号变体，并首先统一为 ASCII 双引号
+    std::string asciiQuote = "\""; // 默认
+    try {
+        std::string json = readFile(jsonPath);
+        auto dq = parseDoubleQuoteVariants(json);
+        if (!dq.empty()) asciiQuote = dq.front();
+        for (const auto& v : parseDoubleQuoteVariants(readFile(jsonPath))) {
+            if (v != asciiQuote) {
+                size_t pos = 0;
+                while ((pos = normalized.find(v, pos)) != std::string::npos) {
+                    normalized.replace(pos, v.size(), asciiQuote);
+                    pos += asciiQuote.size();
+                }
+            }
+        }
+    } catch (...) {
+        // 忽略
+    }
+
+    // 4) 构造除引号以外的替换表
     std::vector<std::pair<std::string,std::string>> replaces;
     for (const auto& kv : allMap) {
         const std::string& sym = kv.first;
@@ -229,38 +248,46 @@ std::string normalizeSourceBySymbols(const std::string& source, const std::strin
             int key = static_cast<int>(tt);
             auto it = asciiCanonical.find(key);
             if (it != asciiCanonical.end() && it->second != sym) {
-                replaces.emplace_back(sym, it->second);
+                // 跳过将引号变体替换为 ASCII 的项（已在前一步处理）
+                if (!(sym == asciiQuote || it->second == asciiQuote)) {
+                    replaces.emplace_back(sym, it->second);
+                }
             }
         }
     }
 
-    // 4) 单独处理字符串引号：将中文书名号 “ ” 等替换为 ASCII 双引号
-    try {
-        std::string json = readFile(jsonPath);
-        auto dq = parseDoubleQuoteVariants(json);
-        if (!dq.empty()) {
-            std::string asciiQ = dq.front();
-            for (const auto& v : dq) {
-                if (v != asciiQ) replaces.emplace_back(v, asciiQ);
-            }
-        }
-    } catch (...) {
-        // 读取失败忽略，继续用默认映射
-    }
-
-    // 5) 执行替换（从长到短，避免前后覆盖）
+    // 5) 仅在字符串字面量之外执行符号替换
     std::sort(replaces.begin(), replaces.end(), [](const auto& a, const auto& b){ return a.first.size() > b.first.size(); });
-    for (const auto& rp : replaces) {
-        const std::string& from = rp.first;
-        const std::string& to   = rp.second;
-        size_t pos = 0;
-        while ((pos = normalized.find(from, pos)) != std::string::npos) {
-            normalized.replace(pos, from.size(), to);
-            pos += to.size();
+    std::string out;
+    out.reserve(normalized.size());
+    bool inString = false;
+    for (size_t i = 0; i < normalized.size();) {
+        if (normalized.compare(i, asciiQuote.size(), asciiQuote) == 0) {
+            // 切换字符串状态并复制引号本身
+            inString = !inString;
+            out.append(asciiQuote);
+            i += asciiQuote.size();
+            continue;
         }
+        if (!inString) {
+            bool replaced = false;
+            for (const auto& rp : replaces) {
+                const auto& from = rp.first;
+                const auto& to = rp.second;
+                if (normalized.compare(i, from.size(), from) == 0) {
+                    out.append(to);
+                    i += from.size();
+                    replaced = true;
+                    break;
+                }
+            }
+            if (replaced) continue;
+        }
+        out.push_back(normalized[i]);
+        ++i;
     }
 
-    return normalized;
+    return out;
 }
 
 // 构建并运行生成的C++代码
@@ -551,6 +578,15 @@ int main(int argc, char* argv[]) {
         // 初始化包管理器
         polyglot::IntegratedPackageManager packageManager(project_root);
 
+        // 如果是安静模式，整体抑制 std::cout 横幅/日志输出（用户程序输出走 stdout 不受影响）
+        struct NullBuffer : public std::streambuf { int overflow(int c) { return c; } };
+        static NullBuffer nb;
+        std::streambuf* oldBuf = nullptr;
+        if (quiet) {
+            static std::ostream nullOut(&nb);
+            oldBuf = std::cout.rdbuf(nullOut.rdbuf());
+        }
+
         // 处理包管理命令
         if (cleanCache) {
             packageManager.cleanCache();
@@ -606,15 +642,11 @@ int main(int argc, char* argv[]) {
         }
 
         // 使用AST解释器模式进行编译执行
-        if (quiet) {
-            struct NullBuffer : public std::streambuf { int overflow(int c) { return c; } };
-            static NullBuffer nb;
-            static std::ostream nullOut(&nb);
-            std::streambuf* oldBuf = std::cout.rdbuf(nullOut.rdbuf());
-            compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
+        compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
+
+        // 恢复输出
+        if (quiet && oldBuf) {
             std::cout.rdbuf(oldBuf);
-        } else {
-            compileWithOptions(sourceCode, sourceFile, updateDeps, noDeps, verbose, packageManager);
         }
 
     } catch (const CompilerError& e) {
