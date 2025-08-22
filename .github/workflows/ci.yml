@@ -81,3 +81,62 @@ jobs:
             tests/golden/report/**
           if-no-files-found: ignore
           retention-days: 7
+
+  report:
+    needs: [build-test-debian, build-test-windows]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download artifacts (debian)
+        uses: actions/download-artifact@v4
+        with:
+          name: golden-report-debian
+          path: reports/debian
+        continue-on-error: true
+
+      - name: Download artifacts (windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: golden-report-windows
+          path: reports/windows
+        continue-on-error: true
+
+      - name: Summarize results and comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            function readSummary(p) {
+              try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; }
+            }
+            const deb = readSummary('reports/debian/汇总.json');
+            const win = readSummary('reports/windows/汇总.json');
+            function pickFails(sum){
+              if(!sum || !sum.结果) return [];
+              return sum.结果.filter(r=>r.状态 !== '通过').map(r=>`${r.名称} (${r.状态})`);
+            }
+            const total = (deb?.总数||0)+(win?.总数||0);
+            const passed = (deb?.通过||0)+(win?.通过||0);
+            const failed = (deb?.失败||0)+(win?.失败||0);
+            const errors = (deb?.错误||0)+(win?.错误||0);
+            const list = [...pickFails(deb), ...pickFails(win)].slice(0,20);
+            const body = [
+              `CI 金样测试结果：总数=${total} 通过=${passed} 失败=${failed} 错误=${errors}`,
+              '',
+              list.length ? '失败/错误用例（前 20 项）：\n- ' + list.join('\n- ') : '无失败或错误用例',
+              '',
+              '建议：',
+              '- 若为文案差异：请主程序给出最终提示文本，我方同步期望文件；',
+              '- 若为语义/实现：请主程序确认落地节奏（书名号《-、全角括号/运算符、海象、数组、f32/f64 等）；',
+              '- 我方持续保持 runner/CI 稳定。'
+            ].join('\n');
+            core.summary.addRaw(body).write();
+            if (context.eventName === 'pull_request') {
+              const number = context.payload.pull_request.number;
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                body
+              });
+            }
