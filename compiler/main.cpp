@@ -176,6 +176,60 @@ bool isAsciiContent(const std::string& content) {
     return true;
 }
 
+// 将形如 "\u201C" 的 JSON 转义序列解码为对应的 UTF-8 字符串
+static std::string decodeJsonEscapes(const std::string& s) {
+    auto hexVal = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+        if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+        return -1;
+    };
+    auto appendCodepoint = [](std::string& out, unsigned int cp) {
+        if (cp <= 0x7F) {
+            out.push_back(static_cast<char>(cp));
+        } else if (cp <= 0x7FF) {
+            out.push_back(static_cast<char>(0xC0 | ((cp >> 6) & 0x1F)));
+            out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+        } else if (cp <= 0xFFFF) {
+            out.push_back(static_cast<char>(0xE0 | ((cp >> 12) & 0x0F)));
+            out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+            out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+        } else {
+            out.push_back(static_cast<char>(0xF0 | ((cp >> 18) & 0x07)));
+            out.push_back(static_cast<char>(0x80 | ((cp >> 12) & 0x3F)));
+            out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+            out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+        }
+    };
+
+    std::string out;
+    out.reserve(s.size());
+    for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        if (c == '\\' && i + 1 < s.size()) {
+            char n = s[i + 1];
+            if (n == 'u' && i + 5 < s.size()) {
+                int h1 = hexVal(s[i + 2]);
+                int h2 = hexVal(s[i + 3]);
+                int h3 = hexVal(s[i + 4]);
+                int h4 = hexVal(s[i + 5]);
+                if (h1 >= 0 && h2 >= 0 && h3 >= 0 && h4 >= 0) {
+                    unsigned int cp = (h1 << 12) | (h2 << 8) | (h3 << 4) | h4;
+                    appendCodepoint(out, cp);
+                    i += 5;
+                    continue;
+                }
+            } else if (n == 'n') { out.push_back('\n'); i++; continue; }
+            else if (n == 't') { out.push_back('\t'); i++; continue; }
+            else if (n == 'r') { out.push_back('\r'); i++; continue; }
+            else if (n == '\\') { out.push_back('\\'); i++; continue; }
+            else if (n == '"') { out.push_back('"'); i++; continue; }
+        }
+        out.push_back(c);
+    }
+    return out;
+}
+
 // 简单解析 JSON，提取 string_delimiters.double_quote 列表（不依赖第三方库）
 static std::vector<std::string> parseDoubleQuoteVariants(const std::string& json) {
     std::vector<std::string> variants;
@@ -192,7 +246,8 @@ static std::vector<std::string> parseDoubleQuoteVariants(const std::string& json
         if (q1 == std::string::npos) break;
         size_t q2 = arr.find('"', q1 + 1);
         if (q2 == std::string::npos) break;
-        variants.push_back(arr.substr(q1 + 1, q2 - q1 - 1));
+        std::string raw = arr.substr(q1 + 1, q2 - q1 - 1);
+        variants.push_back(decodeJsonEscapes(raw));
         cur = q2 + 1;
     }
     return variants;
@@ -220,17 +275,18 @@ std::string normalizeSourceBySymbols(const std::string& source, const std::strin
     }
 
     // 3) 获取所有引号变体，并首先统一为 ASCII 双引号
-    std::string asciiQuote = "\""; // 默认
+    std::string asciiQuote = "\""; // 目标始终是 ASCII 双引号
     try {
         std::string json = readFile(jsonPath);
         auto dq = parseDoubleQuoteVariants(json);
-        if (!dq.empty()) asciiQuote = dq.front();
-        for (const auto& v : parseDoubleQuoteVariants(readFile(jsonPath))) {
-            if (v != asciiQuote) {
-                size_t pos = 0;
-                while ((pos = normalized.find(v, pos)) != std::string::npos) {
-                    normalized.replace(pos, v.size(), asciiQuote);
-                    pos += asciiQuote.size();
+        if (!dq.empty()) {
+            for (const auto& v : dq) {
+                if (!v.empty() && v != asciiQuote) {
+                    size_t pos = 0;
+                    while ((pos = normalized.find(v, pos)) != std::string::npos) {
+                        normalized.replace(pos, v.size(), asciiQuote);
+                        pos += asciiQuote.size();
+                    }
                 }
             }
         }
@@ -256,25 +312,37 @@ std::string normalizeSourceBySymbols(const std::string& source, const std::strin
         }
     }
 
-    // 5) 仅在字符串字面量之外执行符号替换
+    // 5) 仅在字符串字面量之外执行符号替换（考虑转义）
     std::sort(replaces.begin(), replaces.end(), [](const auto& a, const auto& b){ return a.first.size() > b.first.size(); });
     std::string out;
     out.reserve(normalized.size());
     bool inString = false;
+    bool prevBackslash = false;
     for (size_t i = 0; i < normalized.size();) {
         if (normalized.compare(i, asciiQuote.size(), asciiQuote) == 0) {
-            // 切换字符串状态并复制引号本身
-            inString = !inString;
+            if (!prevBackslash) {
+                inString = !inString;
+            }
             out.append(asciiQuote);
             i += asciiQuote.size();
+            prevBackslash = false;
             continue;
+        }
+        char ch = normalized[i];
+        if (ch == '\\') {
+            out.push_back(ch);
+            prevBackslash = !prevBackslash;
+            ++i;
+            continue;
+        } else {
+            prevBackslash = false;
         }
         if (!inString) {
             bool replaced = false;
             for (const auto& rp : replaces) {
                 const auto& from = rp.first;
                 const auto& to = rp.second;
-                if (normalized.compare(i, from.size(), from) == 0) {
+                if (!from.empty() && normalized.compare(i, from.size(), from) == 0) {
                     out.append(to);
                     i += from.size();
                     replaced = true;
@@ -286,7 +354,6 @@ std::string normalizeSourceBySymbols(const std::string& source, const std::strin
         out.push_back(normalized[i]);
         ++i;
     }
-
     return out;
 }
 
