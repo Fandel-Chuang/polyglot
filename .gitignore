@@ -68,3 +68,7 @@ core
 # 文档生成文件
 docs/_build/
 site/
+
+# 自动生成的金样测试报告（不纳入版本控制）
+自动化测试/金样测试/报告/
+tests/golden/report/
