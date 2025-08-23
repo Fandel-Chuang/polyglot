@@ -1,4 +1,4 @@
-# Polyglot包管理器(PGM) - 快速入门指南
+﻿# Polyglot包管理器(PGM) - 快速入门指南
 
 ## 🚀 概述
 
@@ -82,11 +82,11 @@ pgm update
 >> "github.com/user/json-parser"
 
 main() {
-    ? client = HttpClient()
-    ? response = client.get("https://api.example.com/data")
+    client := HttpClient()
+    response := client.get("https://api.example.com/data")
 
     (response.is_success()) ? {
-        ? json = JsonParser::parse(response.unwrap().body)
+        json := JsonParser::parse(response.unwrap().body)
         println("数据: " + json.to_string())
     }
 
