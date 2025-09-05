@@ -3,6 +3,7 @@
 #include "ast.h"
 #include "error.h"
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <string>
 #include <memory>
@@ -62,6 +63,25 @@ struct SemanticErrorInfo {
         : message(msg), line(l), column(c) {}
 };
 
+// === 循环引用检测（骨架） ===
+// 本期先做类型依赖图与环检测骨架：
+// - 类型名之间建立有向边（强引用）
+// - 未来可在字段层识别弱引用（~=）并忽略该边
+// - 当检测到环时，输出路径与建议
+struct TypeGraph {
+    // 邻接表：A -> {B, C}
+    std::unordered_map<std::string, std::vector<std::pair<std::string,bool>>> adj;
+    // 记录顶点是否存在
+    std::unordered_set<std::string> vertices;
+
+    void addVertex(const std::string& t) { vertices.insert(t); }
+    // addEdge(u, v, strong=true)
+    void addEdge(const std::string& u, const std::string& v, bool strong=true) {
+        vertices.insert(u); vertices.insert(v);
+        adj[u].push_back({v, strong});
+    }
+};
+
 class SemanticAnalyzer {
 private:
     SymbolTable symbolTable;
@@ -95,6 +115,11 @@ private:
     // 错误处理
     void reportError(const std::string& message, ASTNode* node = nullptr);
     bool isTypeCompatible(const std::string& expected, const std::string& actual);
+
+    // 循环引用检测（骨架）
+    TypeGraph typeGraph;
+    void buildTypeGraph(Program* program);
+    bool detectCycle(std::vector<std::string>& pathOut);
 
 public:
     SemanticAnalyzer();
